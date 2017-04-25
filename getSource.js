@@ -3,7 +3,7 @@ var result;
 function get_source(document_body){
     // 웹페이지의 내용물
     result = document_body.innerText;
-    return "OK";
+    return "완료되었습니다.";
 }
 
 chrome.extension.sendMessage({

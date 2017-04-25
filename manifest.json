@@ -1,13 +1,18 @@
 {
-    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv/4NgdZbytQO7xpf5UTd9kaArf7Yn5UCHnmzSb+2CW9d2VAyi5EZKQ2zyjO5g+b2wmDG16uhczN2/2IbeRKtWGOeIj/Fj0PWyuN3y+AMokJb2juAnjtEKgf5KsCKj+7GToad8EzR5iH4kN16X0c2DyZy2XyDJ0VqT/PCtnne7mfj/OolcGZFByK1Wu5/MbmTctBbu0LbpdDsj2EzlO14tJVuppa74qc40BDh4xo6/q9Nmw4HXgim2t121mhtAew0j607mY8XYluD0HDMttuerPi5TaCyzifhUN3dbsN1Tt/1DGtAKj1FG4C+KoHb6dfTuhvHtPvLpMig/8OMFbFaFwIDAQAB",
+	"key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv/4NgdZbytQO7xpf5UTd9kaArf7Yn5UCHnmzSb+2CW9d2VAyi5EZKQ2zyjO5g+b2wmDG16uhczN2/2IbeRKtWGOeIj/Fj0PWyuN3y+AMokJb2juAnjtEKgf5KsCKj+7GToad8EzR5iH4kN16X0c2DyZy2XyDJ0VqT/PCtnne7mfj/OolcGZFByK1Wu5/MbmTctBbu0LbpdDsj2EzlO14tJVuppa74qc40BDh4xo6/q9Nmw4HXgim2t121mhtAew0j607mY8XYluD0HDMttuerPi5TaCyzifhUN3dbsN1Tt/1DGtAKj1FG4C+KoHb6dfTuhvHtPvLpMig/8OMFbFaFwIDAQAB",
 	"manifest_version": 2,
-	"name": "Hello_World",
-	"description": "Print Hello, World! message",
+	"name": "WIK",
+	"description": "WIK - Chrome Extensions",
 	"version": "1.0",
 	"browser_action": {
-		"default_icon": "icon.png",
+		"default_icon": "sample-19.png",
 		"default_popup": "popup.html"
 	},
+  "icons" : {
+    "16" : "sample-16.png",
+    "48" : "sample-48.png",
+    "128" : "sample-128.png"
+  },
   "permissions": [
 		"tabs",
 		"<all_urls>",
