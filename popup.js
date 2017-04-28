@@ -1,6 +1,6 @@
-var isAgree = confirm("모바일로 내용을 보내시겠습니까?");
+//var isAgree = confirm("모바일로 내용을 보내시겠습니까?");
 
-//var isAgree=false;
+var isAgree=true;
 if(isAgree){
 	window.onload = runPackage;
 }else{
