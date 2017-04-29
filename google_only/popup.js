@@ -43,7 +43,8 @@ if(isAgree){
                 document.body.innerText = 'There was an error injecting script : \n' + chrome.extension.lastError.message;
             }
             // Call method: post inner text to server with token
-            if(result.toString().length == 0){
+			console.log('[onWindowLoad] result.length\n' + result);
+            if(result == null || result.toString().length == 0){
                 alert("텍스트가 없습니다.")
             } else {
 				//document.body.innerText="완료되었습니다.";
@@ -83,7 +84,7 @@ if(isAgree){
 		// @corecode_end getAuthToken
 	} // end interactiveSignIn
 	
-	
+	// from interactiveSignIn -> getUserInfo
 	function requestStart(method, url) {
       var xhr = new XMLHttpRequest();
       xhr.open(method, url);
@@ -114,9 +115,10 @@ if(isAgree){
 	function onUserInfoFetched(error, status, response) {
 		if (!error && status == 200) {
 		  //changeState(STATE_AUTHTOKEN_ACQUIRED);
-		  alert('onUserInfoFetched: response] \n' + response);
 		  var user_info = JSON.parse(response);
-		  alert('onUserInfoFetched:user_info] ' + user_info);
+		  
+		  console.log('[onUserInfoFetched] JSON.parse(response) \n' + user_info);
+		  
 		  populateUserInfo(user_info);
 		} else {
 			alert('[onUserInfoFetched] error || status != 200');
@@ -126,9 +128,6 @@ if(isAgree){
 
 	// 1-2.
 	function populateUserInfo(user_info) {
-		//user_info_div.innerHTML = "Hello " + user_info.displayName;
-		alert('populateUserInfo:user_info] ' + user_info);
-		alert('populateUserInfo:user_info.displayName] ' + user_info.displayName);
 		
 		chrome.identity.getProfileUserInfo(function(result){
 			alert('email : ' + result.email + ', id : ' + result.id);
