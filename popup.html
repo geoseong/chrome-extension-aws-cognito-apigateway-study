@@ -1,18 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>크롬 확장프로그램 WIK</title>
+    <title>WIK</title>
     <style>
-        BODY {width : 80px; min-height:15px;}
+        BODY {width : 300px; min-height:700px;}
     </style>
+
+    <script type="text/javascript" src="popup.js"></script>
+
 </head>
 <body>
 
-    취소되었습니다.
-
-    <!--<button id="click_me">click me</button>-->
-    <script type="text/javascript" src="popup.js"></script>
+    <table>
+        <tr>
+            <th>단어</th>
+            <th>개수</th>
+        </tr>
+        <tr>
+            <td id="words"></td>
+            <td id="count"></td>
+        </tr>
+    </table>
 
 </body>
 </html>
