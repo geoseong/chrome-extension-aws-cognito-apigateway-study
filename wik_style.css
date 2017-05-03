@@ -1,6 +1,6 @@
 body {
-    width : 500px;
-    height: 600px;
+    width : 450px;
+    height: 540px;
 }
 #wrap #loginarea{
     width: 100%;
@@ -13,3 +13,64 @@ body {
 #loginmsg p{
     font-size: x-small;
 }
+
+/* 단어 div 전체 스타일 */
+#context{
+    width: 100%;
+    padding: 0 2em;
+}
+
+/* start - div : 테이블 */
+#divTable{
+    display: table;
+    width: 100%;
+}
+/* div - row */
+#divTable div{
+    display: table-row;
+}
+/* span - column */
+#divTable span{
+    display: table-cell;
+    padding: 3px;
+    border-bottom: 1px solid #DDD;
+}
+/* span : 단어 영역 */
+#row #divWord{
+
+}
+/* span : 체크박스 영역*/
+#row #chk{
+    width: 10px;
+    /*visibility: hidden;*/
+}
+/* span : 단어 반복횟수 표시영역 */
+#row #cycle{
+    text-align: right;
+    width: 10%;
+}
+/* end - div : 테이블 */
+
+/* visited link */
+#divWord p:visited {
+    color: green;
+}
+/* mouse over link */
+#divWord p:hover {
+    color: red;
+    font-weight: bold;
+}
+/* selected link */
+#divWord p:active {
+    color: yellow;
+    font-weight: bold;
+}
+
+.iknow{
+    text-decoration: underline;
+}
+
+.idontknow{
+    font-weight: bold;
+}
+

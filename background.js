@@ -18,17 +18,40 @@ chrome.runtime.onInstalled.addListener(function() {
 chrome.contextMenus.onClicked.addListener(function (clickData) {
     console.log('clickData.menuItemId == ' + clickData.menuItemId);
     console.log('clickData.selectionText == ' + clickData.selectionText);
+    // 우측하단 알림팝업 변수
     var notifOptions = {};
     if (clickData.menuItemId == "WIK" && clickData.selectionText) {
         var selectedText = clickData.selectionText;
         // 단어들 서버로 전송
+        // Node.js서버에 선택된 단어 보내기
         var xhttp = new XMLHttpRequest();
         console.log('[단어 추가. xhttp]');
         console.log(xhttp);
-        // POST - Node.js서버
         xhttp.open("POST", "http://localhost:8080/api/texts", true);
         xhttp.setRequestHeader("Content-type", "application/json");
         xhttp.send(JSON.stringify({text:selectedText, user_id:"wiksample"}));
+
+        // selectedText를 index.js로 넘기기
+        var arraywik = selectedText.trim().replace(/[^a-zA-Z]/g , '_').replace(/_{2,}/g , '_').split('_');
+        console.log('[displaywik]');
+        console.log(arraywik);
+        var jsonwik = { wik : [] };
+        let repeatcnt;
+        // 배열의 맨끝자리가 빈 값이라면 맨 끝자리 빼고 JSON에 집어넣음을 for문의 반복횟수로 결정
+        if(arraywik[arraywik.length-1] == ''){
+            repeatcnt = arraywik.length-1;
+        }else{
+            repeatcnt = arraywik.length;
+        }
+        // 반복횟수 정한 후 JSON에 Array push.
+        for(var i=0; i<repeatcnt; i++){
+            jsonwik.wik.push(arraywik[i]);
+        }
+        console.log('[JSON:jsonwik]');
+        console.log(jsonwik);
+
+        this.jsonwik = jsonwik;
+
         // 팝업창 생성
         chrome.windows.create({
             url : "index.html",
@@ -46,8 +69,8 @@ chrome.contextMenus.onClicked.addListener(function (clickData) {
             title: "아는단어",
             message: "단어 추출 성공."
         };
-        chrome.notifications.create('notifImport', notifOptions);
     } //end if
+    chrome.notifications.create('notifImport', notifOptions);
 });
 /** end : Context Menu 구현 & 선택데이터 서버통신 부분 */
 
@@ -330,7 +353,7 @@ function sigInUser(userId, userNm){
 
 /** WIK node.js 서버 접속해서 chrome.storage의 id와 비교하기 */
 function checkWIKAccount(userId, userNm){
-    // return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         console.log('[checkWIKAccount]userId : ' + userId);
         let url = "http://localhost:8080/api/users/"+userId;
         console.log('[checkWIKAccount]url : ' + url);
@@ -366,22 +389,33 @@ function checkWIKAccount(userId, userNm){
         xhttpr.send(null);
         console.log('---- after xhr.send ----');
         console.log(xhttpr);
-        // resolve(userId);
-    // });
+        resolve(userNm);
+    });
 
+}
+
+/** 사용자가 추출한 단어(=아는단어 창 열리자마자 mongoDB에 저장된 텍스트 불러옴) 출력 */
+function printWords(userNm){
+    if(userNm){
+        console.log('[printWords] user not logged in-' + userNm);
+    }else{
+        console.log('[this.jsonwik]');
+        console.log(this.jsonwik);
+        chrome.runtime.sendMessage({wik: this.jsonwik});
+    }
 }
 
 /** 가장 첫 시작 부분 */
 function notify(message) {
     // chrome storage에 id값이 있는지 체크
     let userId = message.userId;
-    if(userId){
-        console.log('[notify] userId : ' + userId);
-        checkWIKAccount(userId);
-        return;
-    }else{
-        console.log('[notify] userId is null');
-    }
+    console.log('[notify] userId : ' + userId);
+    checkWIKAccount(userId).then(printWords);
+    // if(userId){
+    //     return;
+    // }
+    // }else{
+    //     console.log('[notify] userId is null');
 
   switch(message.type) {
     case "getUserInfo":

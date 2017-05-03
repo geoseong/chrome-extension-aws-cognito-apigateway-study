@@ -1,19 +1,43 @@
 
-function getUserInfo(provider, intractive=true) {
-  chrome.runtime.sendMessage({"type": "getUserInfo", provider, "interactive": intractive});
+// function revoke() {
+//   chrome.runtime.sendMessage({"type": "removeCachedToken"});
+//   show();
+// }
+//
+// function show() {
+//   return this.userNm;
+// }
+
+function spreadWords(context){
+    console.log('[spreadWords]wik');
+    console.log(context);
+    let wik = context.wik;
+    let wordwik='';// = `<th id="chk">chk</th><th id="wordlist">단어리스트</th><th id="cycle">단어반복횟수</th>`;
+    for(var i=0; i<wik.length; i++){
+        // wordwik +=
+        //   `<tr id="wiktr${i}">
+        //     <td id="wordlist${i}"><p id="wikword${i}">${wik[i]}</p></td><td id="chk${i}"><input type="checkbox" id="chkbox${i}" value="${i}"></td><td id="cycle${i}"><p>몇번</p></td>
+        //   </tr>`;
+        wordwik += `
+        <div id="row${i}">
+            <span id="divWord"><p>${wik[i]}</p></span>
+            <span id="chk"></span>
+            <span id="cycle"><p>몇번</p></div>
+        </div>`;
+    } //end for
+
+    document.getElementById('divTable').innerHTML = wordwik;
 }
 
-function revoke() {
-  chrome.runtime.sendMessage({"type": "removeCachedToken"});
-  show();
-}
-
-function show() {
-  return this.userNm;
+function addClass(num){
+    // DOM의 클래스 추가하는 함수로직 : 무언가를 클릭했을때 이벤트 지정이 필요함.
+    // var divelement = document.getElementById('row'+num);
+    // var att = document.createAttribute("class");
+    // att.value = "iknow";
+    // divelement.setAttributeNode(att);
 }
 
 function messageListener(message) {
-  //show("<pre>" + JSON.stringify(message.error || message.user) + "</pre>");
     console.log('[message] : ');
     console.log(message);
     // background.js와 통신하여 WIK node.js 서버 안의 회원정보가 있는지 판별.
@@ -22,9 +46,14 @@ function messageListener(message) {
       isUserId = true;
       userNm = message.name;
     }
-    console.log('[isUserId] : ' + isUserId);
-    console.log('[userNm] : ' + userNm);
+    console.log('[messageListener isUserId] : ' + isUserId);
+    console.log('[messageListener userNm] : ' + userNm);
+    console.log('[messageListener message]');
+    console.log(message);
 
+    if(message.wik){
+        spreadWords(message.wik);
+    }
     // Promise 패턴. then 부분은 callback.
     initSetting(isUserId, userNm).then(() => {
         document.getElementById('facebook-signin').onclick = () => { getUserInfo("facebook"); };
@@ -32,15 +61,19 @@ function messageListener(message) {
     });
 }
 
+function getUserInfo(provider, intractive=true) {
+    chrome.runtime.sendMessage({"type": "getUserInfo", provider, "interactive": intractive});
+}
+
 function initSetting(userId, userNm){
     return new Promise((resolve, reject) => {
       // userId 값이 존재하면 background.js에서 DB로 조회한 userName을 출력시킨다.
       if(userId){
-          console.log('[true : userNm]');
+          console.log('[initSetting] true : userNm-');
           htmls =
               `${userNm} 님, 환영합니다~!`;
       }else{
-          console.log('[false : userId]');
+          console.log('[initSetting] false : userId -');
           console.log(userId);
           htmls =
               `
