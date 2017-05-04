@@ -4,4 +4,4 @@
 
 170504 현재까지 구현된 UI
 
-![로그인화면](./preview/wik_ui_170504.jpg) 
+![구성UI화면](./preview/wik_ui_170504.jpg) 
