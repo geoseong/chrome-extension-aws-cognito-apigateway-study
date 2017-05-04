@@ -1,42 +1,53 @@
-body {
-    width : 450px;
+body{
+    width : 420px;
     height: 540px;
+    background: #DDD;
+}
+body #wrap{
+    width: 100%;
+    padding: 1em;
 }
 #wrap #loginarea{
-    width: 100%;
+    width: inherit;
     display: inline-block;
     text-align: center;
-}
-#facebook-signin{
-
 }
 #loginmsg p{
     font-size: x-small;
 }
-
-/* 단어 div 전체 스타일 */
-#context{
-    width: 100%;
-    padding: 0 2em;
+#wrap #context{
+    width: inherit;
+    margin: 0 auto;
 }
 
+/***************************************************************/
+/* start - 버튼 디자인*/
+#facebook-signin{
+
+}
+
+/* end - 버튼 디자인*/
+/***************************************************************/
+
+
 /* start - div : 테이블 */
-#divTable{
+#context #divTable{
     display: table;
-    width: 100%;
+    width: inherit;
 }
 /* div - row */
 #divTable div{
     display: table-row;
 }
 /* span - column */
-#divTable span{
+#divTable #spanWord{
     display: table-cell;
     padding: 3px;
-    border-bottom: 1px solid #DDD;
+    background: white;
+    border-bottom: 5px solid #DDD;
 }
 /* span : 단어 영역 */
-#row #divWord{
+#row #spanWord{
 
 }
 /* span : 체크박스 영역*/
@@ -50,27 +61,30 @@ body {
     width: 10%;
 }
 /* end - div : 테이블 */
-
-/* visited link */
-#divWord p:visited {
-    color: green;
+/***************************************************************/
+/* label mouseover 스타일 */
+label{
+    font-weight: bold;
+    color: deepskyblue;
 }
 /* mouse over link */
-#divWord p:hover {
-    color: red;
-    font-weight: bold;
+#divTable label:hover {
+    color: #3e66af;
 }
 /* selected link */
-#divWord p:active {
-    color: yellow;
-    font-weight: bold;
+#divTable label:active {
+    color: cadetblue;
+    padding: 1px 0px 0px 1px;
 }
-
-.iknow{
-    text-decoration: underline;
+/***************************************************************/
+input[type=checkbox]{
+    visibility: hidden;
 }
-
-.idontknow{
-    font-weight: bold;
+#divTable input[type=checkbox]:checked + label{
+    color: #3e66af;
+}
+#spanWord #repeatCnt{
+    margin-right: 2em;
+    float:right;
 }
 

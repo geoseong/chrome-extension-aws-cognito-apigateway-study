@@ -31,26 +31,29 @@ chrome.contextMenus.onClicked.addListener(function (clickData) {
         xhttp.setRequestHeader("Content-type", "application/json");
         xhttp.send(JSON.stringify({text:selectedText, user_id:"wiksample"}));
 
+    /** start : node.js 서버에서 처리할 로직 테스트. */
         // selectedText를 index.js로 넘기기
         var arraywik = selectedText.trim().replace(/[^a-zA-Z]/g , '_').replace(/_{2,}/g , '_').split('_');
         console.log('[displaywik]');
         console.log(arraywik);
-        var jsonwik = { wik : [] };
-        let repeatcnt;
-        // 배열의 맨끝자리가 빈 값이라면 맨 끝자리 빼고 JSON에 집어넣음을 for문의 반복횟수로 결정
-        if(arraywik[arraywik.length-1] == ''){
-            repeatcnt = arraywik.length-1;
-        }else{
-            repeatcnt = arraywik.length;
-        }
-        // 반복횟수 정한 후 JSON에 Array push.
-        for(var i=0; i<repeatcnt; i++){
-            jsonwik.wik.push(arraywik[i]);
+        var jsonwik = { wik : [], iknow : [] };
+        // 단어반복횟수
+        let repeatcnt=0;
+        // 화면에 보여지게 할 단어 데이터 조합.
+        for(var i=0; i<arraywik.length; i++){
+            let isBool = false;
+            if(i%2===0)  {
+                isBool = true;
+            }
+            if(arraywik[i] != ''){
+                jsonwik.wik.push(arraywik[i]);
+                jsonwik.iknow.push(isBool);
+            }
         }
         console.log('[JSON:jsonwik]');
         console.log(jsonwik);
-
         this.jsonwik = jsonwik;
+    /** end : node.js 서버에서 처리할 로직 테스트. */
 
         // 팝업창 생성
         chrome.windows.create({

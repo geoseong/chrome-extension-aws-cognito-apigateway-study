@@ -12,29 +12,23 @@ function spreadWords(context){
     console.log('[spreadWords]wik');
     console.log(context);
     let wik = context.wik;
-    let wordwik='';// = `<th id="chk">chk</th><th id="wordlist">단어리스트</th><th id="cycle">단어반복횟수</th>`;
+    let iknow = context.iknow;
+    let wordwik=''
     for(var i=0; i<wik.length; i++){
-        // wordwik +=
-        //   `<tr id="wiktr${i}">
-        //     <td id="wordlist${i}"><p id="wikword${i}">${wik[i]}</p></td><td id="chk${i}"><input type="checkbox" id="chkbox${i}" value="${i}"></td><td id="cycle${i}"><p>몇번</p></td>
-        //   </tr>`;
+        let checked='';
+        if(iknow[i])    checked='checked';
         wordwik += `
-        <div id="row${i}">
-            <span id="divWord"><p>${wik[i]}</p></span>
-            <span id="chk"></span>
-            <span id="cycle"><p>몇번</p></div>
-        </div>`;
+            <div id="row${i}">
+                <span id="spanWord">
+                    <input type="checkbox" id="chkbox${i}" value="${i}" ${checked}>
+                    <label for="chkbox${i}">
+                        <span id="word">${wik[i]}</span>
+                        <span id="repeatCnt">몇번</span>
+                    </label>
+                </span>
+            </div>`;
     } //end for
-
     document.getElementById('divTable').innerHTML = wordwik;
-}
-
-function addClass(num){
-    // DOM의 클래스 추가하는 함수로직 : 무언가를 클릭했을때 이벤트 지정이 필요함.
-    // var divelement = document.getElementById('row'+num);
-    // var att = document.createAttribute("class");
-    // att.value = "iknow";
-    // divelement.setAttributeNode(att);
 }
 
 function messageListener(message) {
@@ -88,7 +82,7 @@ function initSetting(userId, userNm){
             <p>아는단어는 iPhone, Android 앱스토어에서 다운로드 받을 수 있습니다.<br>
             회원정보 수정은 아는단어 앱에서 하실 수 있습니다.</p>
           </div>
-      `
+      `;
       document.querySelector('#loginarea').innerHTML = htmls;
       console.log('html 추가 후');
 
