@@ -1,13 +1,54 @@
 
-// function revoke() {
-//   chrome.runtime.sendMessage({"type": "removeCachedToken"});
-//   show();
-// }
+
 //
 // function show() {
 //   return this.userNm;
 // }
 
+var user='';
+
+// 1. chrome.runtime.onMessage.addListener
+function messageListener(message) {
+    console.log('[messageListener] : param message :');
+    console.log(message);
+    console.log('[messageListener] : userId :');
+    console.log(this.user);
+
+    let isUserId=false, userNm;
+
+    // background.js와 통신하여 WIK node.js 서버 안의 회원정보가 있는지 판별.
+    try{
+        if(message.name.length > 0){
+          isUserId = true;
+          userNm = message.name;
+        }
+    }catch(e){
+        console.log(e);
+    }
+
+    console.log('[messageListener isUserId] : ' + isUserId);
+    console.log('[messageListener userNm] : ' + userNm);
+    console.log(message);
+
+    try{
+        if(message.data.wik){
+            spreadWords(message.data);
+        }
+    }catch(e){
+        console.log(e);
+    }
+    // Promise 패턴. then 부분은 callback.
+    initSetting(isUserId, userNm).then(() => {
+        console.log('[Promise initSetting]userId : ');
+        console.log(this.user);
+        document.getElementById('facebook-signin').onclick = () => { getUserInfo("facebook"); };
+        document.getElementById('google-signin').onclick = () => { getUserInfo("google"); };
+    }).catch(() => {
+        document.getElementById('signout').onclick = () => { revoke(); };
+    });
+}
+
+// 2. 단어 목록 뿌리기
 function spreadWords(context){
     console.log('[spreadWords]wik');
     console.log(context);
@@ -31,43 +72,19 @@ function spreadWords(context){
     document.getElementById('divTable').innerHTML = wordwik;
 }
 
-function messageListener(message) {
-    console.log('[message] : ');
-    console.log(message);
-    // background.js와 통신하여 WIK node.js 서버 안의 회원정보가 있는지 판별.
-    let isUserId=false, userNm;
-    if(message.name){
-      isUserId = true;
-      userNm = message.name;
-    }
-    console.log('[messageListener isUserId] : ' + isUserId);
-    console.log('[messageListener userNm] : ' + userNm);
-    console.log('[messageListener message]');
-    console.log(message);
-
-    if(message.wik){
-        spreadWords(message.wik);
-    }
-    // Promise 패턴. then 부분은 callback.
-    initSetting(isUserId, userNm).then(() => {
-        document.getElementById('facebook-signin').onclick = () => { getUserInfo("facebook"); };
-        document.getElementById('google-signin').onclick = () => { getUserInfo("google"); };
-    });
-}
-
-function getUserInfo(provider, intractive=true) {
-    chrome.runtime.sendMessage({"type": "getUserInfo", provider, "interactive": intractive});
-}
-
+// 3. 소셜 로그인 부분
 function initSetting(userId, userNm){
     return new Promise((resolve, reject) => {
       // userId 값이 존재하면 background.js에서 DB로 조회한 userName을 출력시킨다.
       if(userId){
-          console.log('[initSetting] true : userNm-');
+          console.log('[initSetting] true -- userNm');
           htmls =
-              `${userNm} 님, 환영합니다~!`;
-      }else{
-          console.log('[initSetting] false : userId -');
+              `${userNm} 님, 환영합니다~!
+              <br>
+              <button id="signout">로그아웃</button>`;
+        reject();
+     }else{
+          console.log('[initSetting] false -- userId');
           console.log(userId);
           htmls =
               `
@@ -90,16 +107,43 @@ function initSetting(userId, userNm){
     });
 }
 
-window.onload = () => {
-    var userId;
-    chrome.storage.sync.get(function(data){
-        console.log('###index.js storage### data.userId : '+data.userId);
-        userId = data.userId;
-        // background.js 로 메시지 보냄 ( Node.js 서버에서 회원정보 조회를 위함)
-        chrome.runtime.sendMessage({userId: userId});
-        chrome.runtime.onMessage.addListener(messageListener);
-        messageListener(userId);
-    });
-    console.log('chrome.storage.sync 이후?');
+// 4. 소셜로그인 버튼 눌렀을 때 : chrome.runtime.sendMessage 로 보내서 background.js에서 로직처리
+function getUserInfo(provider, intractive=true) {
+    console.log('[getuserinfo]provider : ' + provider);
+    console.log('[getuserinfo]userId : ');
+    console.log(this.user);
+    chrome.runtime.sendMessage({"type": "getUserInfo", provider, "interactive": intractive, "userId" : this.user});
+}
 
+// 5. 로그아웃 버튼 눌렀을 때
+function revoke() {
+    chrome.runtime.sendMessage({"type": "removeCachedToken"});
+    // show();
+}
+
+window.onload = () => {
+    // 맨 처음 chrome.storage.sync.get 작업을 마무리 한 이후에 runtime 메시지 받는 메소드로 이동.
+    veryfirst().then((userId) => {
+        console.log('[window.onload] userId');
+        console.log(userId);
+        this.user = userId;
+        messageListener();
+    });
+};
+
+// 0. 맨 첫 실행 부분.
+function veryfirst(){
+    return new Promise((resolve, reject) => {
+        chrome.storage.sync.get(function (data) {
+            console.log('###index.js storage### data.userId : ');
+            console.log(data.userId);
+            this.user = data.userId;
+            // background.js 로 메시지 보냄 ( Node.js 서버에서 회원정보 조회를 위함 )
+            chrome.runtime.sendMessage({userId: data.userId});
+            chrome.runtime.onMessage.addListener(messageListener);
+            console.log('chrome.storage.sync - this.userId 할당');
+            console.log(this.user);
+            resolve(this.user);
+        });
+    });
 };
