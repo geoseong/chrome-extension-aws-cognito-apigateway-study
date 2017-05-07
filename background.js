@@ -175,7 +175,7 @@ let providers = {
           return;
         }
 
-        xhrWithAuth(this, 'GET', 'https://graph.facebook.com/me', interactive).then(response => {
+        xhrWithAuth(this, 'GET', 'https://graph.facebook.com/me?fields=name,picture', interactive).then(response => {
             console.log('[callback: xhrWithAuth]this:');
             console.log(this);
             console.log('[callback: xhrWithAuth]response:');
@@ -311,6 +311,8 @@ function xhrWithAuth(provider, method, url, interactive) {
               reject({ status: xhr.status, response: xhr.response });
           };
           xhr.send();
+          console.log('[xhr]');
+          console.log(xhr);
       });
     });
 }
@@ -456,28 +458,35 @@ function sigInUser(userId, userNm, context){
 
 /** 가장 첫 시작 부분 */
 function notify(message) {
-    console.log('[notify] message : ');
-    console.log(message);
-    var user_id = message.userId;
-    console.log('[notify] user_id : ');
-    console.log(user_id);
+    try{
+        console.log('[notify] message : ');
+        console.log(message);
+        var user_id = message.userId;
+        console.log('[notify] user_id : ');
+        console.log(user_id);
 
-    // 현재 facebook or google에 로그인 한 이력
-    if(message.provider === "facebook" && user_id.facebook.length > 0){
-        this.userId = user_id.facebook;
-        console.log('[notify] userId : ' + userId);
-        checkWIKAccount(userId).then(sendData);
-    }else if(message.provider === "google" && user_id.google.length > 0){
-        this.userId = user_id.google;
-        console.log('[notify] userId : ' + userId);
-        checkWIKAccount(userId).then(sendData);
-    }
-    else if(!user_id || user_id.facebook.length <= 0 && user_id.google.length <= 0){
-        console.log('[notify] facebook도 google도 없다')
+        // 현재 facebook or google에 로그인 한 이력
+        if(message.provider === "facebook" && user_id.facebook.length > 0){
+            this.userId = user_id.facebook;
+            console.log('[notify] userId : ' + userId);
+            checkWIKAccount(userId).then(sendData);
+        }else if(message.provider === "google" && user_id.google.length > 0){
+            this.userId = user_id.google;
+            console.log('[notify] userId : ' + userId);
+            checkWIKAccount(userId).then(sendData);
+        }
+        else if(!user_id || user_id.facebook.length <= 0 && user_id.google.length <= 0){
+            console.log('[notify] facebook도 google도 없다')
+            chrome.storage.sync.get((data) => {
+                sendData(data.context);
+            });
+        } //end if
+    }catch(e) {
         chrome.storage.sync.get((data) => {
             sendData(data.context);
         });
-    } //end if
+        return;
+    }
 
   switch(message.type) {
     case "getUserInfo":
