@@ -163,16 +163,15 @@ JSON화 하여 아래처럼 변수를 지정한다.
 * Response
  
         {
-         "id": "107789202491808307691",
+         "azp": "775980557340-18c360oopd9ifnf6oit5jmv5lp355gft.apps.googleusercontent.com",
+         "aud": "775980557340-18c360oopd9ifnf6oit5jmv5lp355gft.apps.googleusercontent.com",
+         "sub": "107789202491808307691",
+         "scope": "https://www.googleapis.com/auth/plus.me https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
+         "exp": "1494174107",
+         "expires_in": "538",
          "email": "parkopp@gmail.com",
-         "verified_email": true,
-         "name": "taeseong park",
-         "given_name": "taeseong",
-         "family_name": "park",
-         "link": "https://plus.google.com/107789202491808307691",
-         "picture": "https://lh5.googleusercontent.com/-bABKlFiwxH4/AAAAAAAAAAI/AAAAAAAAAPE/dNiva9mABsI/photo.jpg",
-         "gender": "male",
-         "locale": "ko"
+         "email_verified": "true",
+         "access_type": "online"
         }
 
 - - -
