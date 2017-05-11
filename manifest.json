@@ -1,30 +1,37 @@
 {
-	
-	"manifest_version": 2,
-
-	"name": "WIK_test",
-	"description": "WIK - Chrome Extensions",
-	"version": "1.1",
-	"browser_action": {
-		"default_icon": "sample-19.png",
-		"default_popup": "popup.html"
-	},
-	"icons" : {
-		"16" : "sample-16.png",
-		"48" : "sample-48.png",
-		"128" : "sample-128.png"
-	},
-	"permissions": [
-		"tabs",
-		"<all_urls>",
-		"identity",
-		"identity.email"
-	],
-	"oauth2": {
-		"client_id": "775980557340-65db3opdea31m7t9nfrub7rf7j7o88ua.apps.googleusercontent.com",
-		"scopes": [
-		  "https://www.googleapis.com/auth/plus.login"
-		]
-	}
-
+  "name": "아는단어",
+  "version": "1.7",
+  "description": "Words I know",
+  "manifest_version": 2,
+  "background": {
+    "persistent": false,
+    "scripts": ["background.js"]
+  },
+  "browser_action": {
+    "default_icon": "wik_19.png",
+    "default_popup": "index.html",
+    "browser_style": true
+  },
+  "icons": {
+    "16": "wik_16.png",
+    "19": "wik_19.png",
+    "48": "wik_48.png",
+    "128": "wik_128.png"
+  },
+  "content_security_policy": "script-src 'self' https://apis.google.com; object-src 'self'"
+  ,
+  "permissions": [
+    "notifications",
+    "contextMenus",
+    "background",
+    "storage",
+    "unlimitedStorage",
+    "tabs",
+    "<all_urls>",
+    "identity",
+    "*://www.facebook.com/*",
+    "*://graph.facebook.com/*",
+    "*://www.googleapis.com/*",
+    "*://accounts.google.com/*"
+  ]
 }
