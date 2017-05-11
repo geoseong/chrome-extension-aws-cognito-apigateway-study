@@ -1,36 +1,30 @@
 {
-	"key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv/4NgdZbytQO7xpf5UTd9kaArf7Yn5UCHnmzSb+2CW9d2VAyi5EZKQ2zyjO5g+b2wmDG16uhczN2/2IbeRKtWGOeIj/Fj0PWyuN3y+AMokJb2juAnjtEKgf5KsCKj+7GToad8EzR5iH4kN16X0c2DyZy2XyDJ0VqT/PCtnne7mfj/OolcGZFByK1Wu5/MbmTctBbu0LbpdDsj2EzlO14tJVuppa74qc40BDh4xo6/q9Nmw4HXgim2t121mhtAew0j607mY8XYluD0HDMttuerPi5TaCyzifhUN3dbsN1Tt/1DGtAKj1FG4C+KoHb6dfTuhvHtPvLpMig/8OMFbFaFwIDAQAB",
+	
 	"manifest_version": 2,
-	"name": "WIK",
-	"description": "WIK - The word I know, The word I don't know",
-	"version": "1.0",
+
+	"name": "WIK_test",
+	"description": "WIK - Chrome Extensions",
+	"version": "1.1",
 	"browser_action": {
 		"default_icon": "sample-19.png",
 		"default_popup": "popup.html"
 	},
-  "background": {
-    "scripts": [
-      "eventPage.js"
-    ],
-    "persistent": false
-  },
-  "icons" : {
-    "16" : "sample-16.png",
-    "48" : "sample-48.png",
-    "128" : "sample-128.png"
-  },
-  "permissions": [
-        "identity",
-        "background",
+	"icons" : {
+		"16" : "sample-16.png",
+		"48" : "sample-48.png",
+		"128" : "sample-128.png"
+	},
+	"permissions": [
 		"tabs",
 		"<all_urls>",
-        "notifications",
-        "contextMenus",
-        "storage",
-        "unlimitedStorage"
+		"identity",
+		"identity.email"
 	],
-    "oauth2": {
-      "client_id": "1021126255814-um62gqom3mhmrpaoekqh2uqin0m97r7k.apps.googleusercontent.com",
-      "scopes": ["profile"]
-    }
+	"oauth2": {
+		"client_id": "775980557340-65db3opdea31m7t9nfrub7rf7j7o88ua.apps.googleusercontent.com",
+		"scopes": [
+		  "https://www.googleapis.com/auth/plus.login"
+		]
+	}
+
 }
