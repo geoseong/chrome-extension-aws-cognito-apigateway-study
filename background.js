@@ -1,6 +1,8 @@
 /** start : Context Menu 구현 & 선택데이터 서버통신 부분 */
 // Set up context menu tree at install time.
 
+var xapikey = "NaM54LLwRs3wUq3LA14mh4U4NSDq6GPq97O1BgYQ";
+
 chrome.runtime.onInstalled.addListener(function() {
     var contextMenuItem = {
         "id" : "WIK",
@@ -42,28 +44,28 @@ chrome.contextMenus.onClicked.addListener(function (clickData) {
         // chrome.storage.sync.set({	context: selectedText	});
 
     /** start : node.js 서버에서 처리할 로직 테스트. */
-        // selectedText를 index.js로 넘기기
-        var arraywik = selectedText.trim().replace(/[^a-zA-Z]/g , '_').replace(/_{2,}/g , '_').split('_');
-        console.log('[서버로직.displaywik]');
-        console.log(arraywik);
-        var jsonwik = { wik : [], iknow : [] };
-        // 단어반복횟수
-        let repeatcnt=0;
-        // 화면에 보여지게 할 단어 데이터 조합.
-        for(var i=0; i<arraywik.length; i++){
-            let isBool = false;
-            if(i%2===0)  {
-                isBool = true;
-            }
-            if(arraywik[i] != ''){
-                jsonwik.wik.push(arraywik[i]);
-                jsonwik.iknow.push(isBool);
-            }
-        }
-        console.log('[서버로직.JSON:jsonwik]');
-        console.log(jsonwik);
-        // this.jsonwik = jsonwik;
-        chrome.storage.sync.set({	context: jsonwik	});
+        // // selectedText를 index.js로 넘기기
+        // var arraywik = selectedText.trim().replace(/[^a-zA-Z]/g , '_').replace(/_{2,}/g , '_').split('_');
+        // console.log('[서버로직.displaywik]');
+        // console.log(arraywik);
+        // var jsonwik = { wik : [], iknow : [] };
+        // // 단어반복횟수
+        // let repeatcnt=0;
+        // // 화면에 보여지게 할 단어 데이터 조합.
+        // for(var i=0; i<arraywik.length; i++){
+        //     let isBool = false;
+        //     if(i%2===0)  {
+        //         isBool = true;
+        //     }
+        //     if(arraywik[i] != ''){
+        //         jsonwik.wik.push(arraywik[i]);
+        //         jsonwik.iknow.push(isBool);
+        //     }
+        // }
+        // console.log('[서버로직.JSON:jsonwik]');
+        // console.log(jsonwik);
+        // // this.jsonwik = jsonwik;
+        // chrome.storage.sync.set({	context: jsonwik	});
     /** end : node.js 서버에서 처리할 로직 테스트. */
 
 
@@ -358,12 +360,13 @@ function authorize(provider, interactive) {
 /** WIK node.js 서버 접속해서 chrome.storage의 id와 비교하기 */
 function checkWIKAccount(userId, userNm){
     return new Promise((resolve, reject) => {
-        let url = "http://localhost:8080/api/users/getName/"+userId;
-
+        // let url = "http://localhost:8080/api/users/getName/"+userId;
+        let url = "https://6p5fe3dege.execute-api.ap-northeast-2.amazonaws.com/beta/getUserInfo/" + userId;
         console.log('[checkWIKAccount]url : ' + url);
         let xhttpr = new XMLHttpRequest();
         xhttpr.open('GET', url);
         xhttpr.setRequestHeader("Content-type", "application/json");
+        xhttpr.setRequestHeader("x-api-key", xapikey);
         xhttpr.onload = (e) => {
             let r = e.target;
             console.log('[checkWIKAccount]xhttpr.onload 이후 response');
@@ -376,9 +379,11 @@ function checkWIKAccount(userId, userNm){
                     var context = data.context;
                     console.log('[checkWIKAccount:200] chrome.storage context');
                     console.log(context);
-                    // [실전에선 이거 써야함] saveContext(context, response.name).then(resolve);
-                    // 디버그용, 서버로직 완성되면 이거 안씀
-                    sendData(context, response.name);
+                    // [실전에선 이거 써야함]
+                    saveContext(context, response.name).then(resolve);
+                    // // 디버그용, 서버로직 완성되면 이거 안씀
+                    // sendData(context, response.name);
+                    return;
                 });
             } else {
                 chrome.storage.sync.get(function (data) {
@@ -386,7 +391,7 @@ function checkWIKAccount(userId, userNm){
                     console.log('[checkWIKAccount:404 or else] chrome.storage context');
                     console.log(context);
                     if(!userNm){
-                        resolve(context);
+                        // resolve(context);
                         return;
                     }
                     console.log('[checkWIKAccount Promise is not 404:checkWIKAccount]response');
@@ -426,9 +431,12 @@ function saveContext(context, userNm){
     return new Promise((resolve, reject) => {
         // 단어들 서버로 전송 - Node.js서버에 선택된 단어 보내기
         var xhttp = new XMLHttpRequest();
-        xhttp.open("POST", "http://localhost:8080/api/texts", true);
+        // xhttp.open("POST", "http://localhost:8080/api/texts", true);
+        xhttp.open("POST", "https://6p5fe3dege.execute-api.ap-northeast-2.amazonaws.com/beta/createUser", true);
         xhttp.setRequestHeader("Content-type", "application/json");
-        xhttp.send(JSON.stringify({text: context, user_id: this.userId}));
+        xhttp.setRequestHeader("x-api-key", xapikey);
+        // xhttp.send(JSON.stringify({text: context, user_id: this.userId}));
+        xhttp.send(JSON.stringify({user_id: this.userId}));
         console.log('[단어 추가. xhttp]');
         console.log(xhttp);
         resolve(context, userNm);
@@ -437,7 +445,7 @@ function saveContext(context, userNm){
 /** 회원가입하기. */
 function sigInUser(userId, userNm, context){
     return new Promise((resolve, reject) => {
-        let url = "http://localhost:8080/api/users/createUser"
+        let url = "https://6p5fe3dege.execute-api.ap-northeast-2.amazonaws.com/beta/createUser";
         let userInfo = JSON.stringify({
             user_id: userId, name: userNm
         });
@@ -445,9 +453,12 @@ function sigInUser(userId, userNm, context){
         let xhttp_sign = new XMLHttpRequest();
         xhttp_sign.open('POST', url);
         xhttp_sign.setRequestHeader("Content-type", "application/json");
+        xhttp.setRequestHeader("x-api-key", xapikey);
+
         console.log('[sigInUser userInfo]');
         console.log(userInfo);
         xhttp_sign.send(userInfo);
+
         console.log('[sigInUser]');
         console.log(xhttp_sign);
         resolve(context, userNm);
@@ -461,11 +472,14 @@ function notify(message) {
     try{
         console.log('[notify] message : ');
         console.log(message);
+        // chrome.runtime.message에 userId가 아얘 없다면 catch로 넘어감.
         var user_id = message.userId;
         console.log('[notify] user_id : ');
         console.log(user_id);
 
-        // 현재 facebook or google에 로그인 한 이력
+        /** start : facebook, google 로그인 버튼을 눌렀을 때 */
+        // 현재 facebook or google에 로그인 한 이력이 있으면 if문에 빠져돌어감.
+        // else. 한번도 로그인 한 적 없으므로 가입버튼 이벤트가 화면에 보이게 index.js로 넘김.
         if(message.provider === "facebook" && user_id.facebook.length > 0){
             this.userId = user_id.facebook;
             console.log('[notify] userId : ' + userId);
@@ -487,7 +501,7 @@ function notify(message) {
         });
         return;
     }
-
+    console.log('[notify] message.type switch 들어가기 직전');
   switch(message.type) {
     case "getUserInfo":
       console.log(message.provider);
@@ -498,13 +512,17 @@ function notify(message) {
           console.log(message);
           // 크롬 스토리지에 (provider에 따른) 입력값을 저장한다.
           if(message.provider === "facebook"){
-            chrome.storage.sync.set({
-                userId: {"facebook" : user.id, "google" : ""}
-            }, notify);
+            chrome.storage.sync.set(
+                {
+                    userId: {"facebook" : user.id, "google" : ""}
+                }
+            );
           }else{
-            chrome.storage.sync.set({
-                userId: {"facebook" : "", "google" : user.id}
-            }, notify);
+            chrome.storage.sync.set(
+                {
+                    userId: {"facebook" : "", "google" : user.id}
+                }
+            );
           } //end if
       });
       break;

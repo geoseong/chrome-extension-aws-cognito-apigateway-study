@@ -1,6 +1,6 @@
 {
   "name": "아는단어",
-  "version": "1.6",
+  "version": "1.7",
   "description": "Words I know",
   "manifest_version": 2,
 
@@ -19,6 +19,8 @@
     "48": "wik_48.png",
     "128": "wik_128.png"
   },
+  "content_security_policy": "script-src 'self' https://apis.google.com; object-src 'self'"
+  ,
   "permissions": [
     "notifications",
     "contextMenus",

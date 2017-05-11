@@ -28,6 +28,8 @@ function messageListener(message) {
 
     console.log('[messageListener isUserId] : ' + isUserId);
     console.log('[messageListener userNm] : ' + userNm);
+
+    console.log('[messageListener message] : ');
     console.log(message);
 
     try{
@@ -88,8 +90,22 @@ function initSetting(userId, userNm){
           console.log(userId);
           htmls =
               `
-                  <button id="facebook-signin">Facebook으로 시작하기</button>
-                  <button id="google-signin">Google으로 시작하기</button>
+            <div class = "socialtbl">
+                <div class="social">
+                    <div id="social_cell">                
+                        <div id="facebook-signin">
+                            <span id="icon"></span>
+                            <span id="buttonText">Facebook에 연결</span>
+                        </div>
+                    </div>
+                    <div id="social_cell">    
+                        <div id="google-signin" class="customGPlusSignIn">
+                            <span id="icon"></span>
+                            <span id="buttonText">Google에 연결</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
               `;
           // Promise 패턴의 callback 실행(initSetting을 다 훑고 실행)
           resolve();
@@ -121,16 +137,6 @@ function revoke() {
     // show();
 }
 
-window.onload = () => {
-    // 맨 처음 chrome.storage.sync.get 작업을 마무리 한 이후에 runtime 메시지 받는 메소드로 이동.
-    veryfirst().then((userId) => {
-        console.log('[window.onload] userId');
-        console.log(userId);
-        this.user = userId;
-        messageListener();
-    });
-};
-
 // 0. 맨 첫 실행 부분.
 function veryfirst(){
     return new Promise((resolve, reject) => {
@@ -145,5 +151,15 @@ function veryfirst(){
             console.log(this.user);
             resolve(this.user);
         });
+    });
+};
+
+window.onload = () => {
+    // 맨 처음 chrome.storage.sync.get 작업을 마무리 한 이후에 runtime 메시지 받는 메소드로 이동.
+    veryfirst().then((userId) => {
+        console.log('[window.onload] userId');
+        console.log(userId);
+        this.user = userId;
+        messageListener();
     });
 };
