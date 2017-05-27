@@ -15,14 +15,11 @@ function modal(){
 		//----- OK
 		$('[data-popup-ok]').on('click', function(e)  {
 			if(window.titleform.title.value.length===0){
-				console.log('컨텐츠의 제목이 입력되지 않았습니다.');
 				document.getElementById('validation').innerText = '컨텐츠의 제목이 입력되지 않았습니다.';
 				return false;
 			}
 			//var contenttag = JSON.stringify($('form').serializeArray());
 			var contenttag = $('form').serializeArray();
-			console.log('[modal.js]]', contenttag);	/** Confirm Data from modal */
-
 			var paramTitle;
 			var paramTag=[];
 			for(var i=0; i<contenttag.length; i++){

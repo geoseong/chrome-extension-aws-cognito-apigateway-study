@@ -5,12 +5,6 @@ var recur=0;
 // 1. chrome.runtime.onMessage.addListener
 function messageListener(message) {
     let isUserId=false, userNm;
-
-    console.log('[messageListener message] :');
-    console.log(message);
-    console.log('[messageListener this.user] :');
-    console.log(this.user);
-
     // background.js와 통신하여 WIK node.js 서버 안의 회원정보가 있는지 판별.
     try{
         if(!message.data) {
@@ -36,9 +30,6 @@ function messageListener(message) {
 
 // 2. 단어 목록 뿌리기
 function spreadWords(context, pageStart){
-        console.log('[spreadWords]context\n', context);
-        console.log('[spreadWords context.length]', context.length)
-
         var wordwik = '';
         var paginghtml = '';
         var paginglistCnt = 15;
@@ -71,7 +62,6 @@ function spreadWords(context, pageStart){
             }
             var temp = document.getElementById('btnPrev').value;
             temp = Number(temp);
-            console.log('[paging temp]', temp);
             spreadWords(context, temp);
         };
         document.getElementById('btnNext').onclick = () => {    // 다음 화살표 누를때
@@ -80,7 +70,6 @@ function spreadWords(context, pageStart){
             }
             var temp = document.getElementById('btnNext').value;
             temp = Number(temp);
-            console.log('[paging temp]', temp);
             spreadWords(context, temp);
         };
 
@@ -125,7 +114,6 @@ function switchWordStatus(index, context) {
         return;
     }
     recur = 0;
-    console.log('[switchWordStatus: index]', index);    console.log('[switchWordStatus: context]', context[index]);
     chrome.storage.sync.get(function (data) {
         if(context[index].know){
             context[index].know = false;
@@ -146,7 +134,6 @@ function switchWordStatus(index, context) {
             alert('로그인 오류. 창을 닫고 다시 시도하세요.');
             return;
         }
-        console.log('[switchWordStatus: userId]', userId);
         updateWordStatusUserIdPatch(userId, body);
     });
 }
@@ -156,15 +143,12 @@ function initSetting(userId, userNm){
     return new Promise((resolve, reject) => {
       // userId 값이 존재하면 background.js에서 DB로 조회한 userName을 출력시킨다.
       if(userId){
-          console.log('[initSetting] true -- userNm');
           htmls =
               `${userNm} 님, 환영합니다~!
               <br>
               <button id="signout">로그아웃</button>`;
         reject();
      }else{
-          console.log('[initSetting] false -- userId');
-          console.log(userId);
           htmls =
               `
             <div class = "socialtbl">
@@ -200,9 +184,6 @@ function initSetting(userId, userNm){
 
 // 4. 소셜로그인 버튼 눌렀을 때 : chrome.runtime.sendMessage 로 보내서 background.js에서 로직처리
 function getUserInfo(provider, intractive=true) {
-    console.log('[getuserinfo]provider : ' + provider);
-    console.log('[getuserinfo]userId : ');
-    console.log(this.user);
     let htmls = `
           <p style="width: 100%; text-align:center">로딩 중..잠시 기다려 주세요...</p>
       `;
@@ -233,8 +214,6 @@ window.onload = () => {
 };
 function sendToBackgroundJS(paramTitle, paramTag){
     chrome.storage.sync.get(function (data) {
-        console.log('###index.js storage window.onload###');
-        console.log(data);
         var provider;
         if(data.facebook.id.length > 0){
             provider = "facebook";

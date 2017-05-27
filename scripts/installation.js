@@ -11,7 +11,7 @@ chrome.runtime.onInstalled.addListener(function() {
             console.log("Got expected error: " + chrome.extension.lastError.message);
         }
     });
-    console.log('시작');
+    console.log('아는단어를 이용하시는 여러분 환영합니다~');
     chrome.storage.sync.set({
         "facebook": {"id": '', "name": ''},
         "google": {"id": '', "name": ''}

@@ -162,8 +162,6 @@ function getAWSCredential(params){
             };
             apigClient.getUserInfoUserIdGet(params_getUserInfo, body_getUserInfo, additionalParams)
                 .then(function (result) {
-                    console.log('[getUserInfoUserIdGet-success]');
-                    console.log(result);
                     // 사용자가 없으면 createUser 후 postTextUser
                     if(result.data.is_user === 0){
                         let params_createUser = {
@@ -175,7 +173,6 @@ function getAWSCredential(params){
 
                         apigClient.createUserPost(params_createUser, body_createUser, additionalParams)
                             .then(function (result) {
-                                console.log('[createUserPost:result] \n', result);
                                 let parms_postTextUserId = {
                                     user_id: identityId
                                 }
@@ -187,8 +184,7 @@ function getAWSCredential(params){
                                 // 사용자 단어 DynamoDB에 모두 넣은 뒤 index.js에서 단어뿌리기작업 실시
                                 postTextUserIdPost(parms_postTextUserId, body_postTextUserId).then(messageListener);
                             }).catch(function (result) {
-                                console.log('[createUserPost-fail]');
-                                console.log(result);
+                                console.log('[createUserPost-fail]', result);
                             })
                     }
                     else{
@@ -205,8 +201,7 @@ function getAWSCredential(params){
                         postTextUserIdPost(parms_postTextUserId, body_postTextUserId).then(messageListener);
                     }
                 }).catch(function (result) {
-                    console.log('[getUserInfoUserIdGet-fail]');
-                    console.log(result);
+                    console.log('[getUserInfoUserIdGet-fail]', result);
                 });
     });
     return identityId;
@@ -216,13 +211,10 @@ function postTextUserIdPost(params, body, additionalParams) {
     return new Promise((resolve, reject) => {
         apigClient.postTextUserIdPost(params, body, additionalParams)
             .then(function (result) {
-                console.log('[postTextUserIdPost-success]');
-                console.log(result);
                 // index.js messsageListener(message)에 파라미터 전달하여 단어뿌리기작업 실시
                 resolve({name: userNm, data: result.data});
             }).catch(function (result) {
-                console.log('[postTextUserIdPost-fail]');
-                console.log(result);
+                console.log('[postTextUserIdPost-fail]', result);
             });
     });
 }
@@ -231,16 +223,12 @@ function updateWordStatusUserIdPatch(userId, body) {
     let params = {
         user_id : userId
     }
-    console.log('[updateWordStatusUserIdPatch:body]', body);
     apigClient.updateWordStatusUserIdPatch(params, body, additionalParams)
         .then(function (result) {
-            console.log('[updateWordStatusUserIdPatch-success]');
-            console.log(result);
             // index.js messsageListener(message)에 파라미터 전달하여 단어뿌리기작업 실시
             // resolve({name: userNm, data: result.data});
         }).catch(function (result) {
-            console.log('[updateWordStatusUserIdPatch-fail]');
-            console.log(result);
+            console.log('[updateWordStatusUserIdPatch-fail]', result);
             // background.js 로 메시지 보냄 ( token을 다시 받아서 security token refresh를 위함. )
             chrome.runtime.sendMessage({provider: provider, type: 'getUserInfo'});
         });
@@ -266,8 +254,6 @@ function sendIdentityId(identityId){
 function userLoggedIn(creds, providerName, token) {
     creds.params.Logins = {};
     creds.params.Logins[providerName] = token;
-    console.log('[userLoggedIn]creds.params');
-    console.log(creds.params);
 // Expire credentials to refresh them on the next request
     creds.expired = true;
 }
