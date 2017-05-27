@@ -1,7 +1,7 @@
 body{
     width : 420px;
     height: 540px;
-    background: #DDD;
+    background: #fbf8f8;
 }
 body #wrap{
     width: 100%;
@@ -40,14 +40,14 @@ body #wrap{
     display: table-row;
 }
 /* span - column */
-#divTable #spanWord{
+#divTable .spanWord{
     display: table-cell;
     padding: 3px;
     background: white;
-    border-bottom: 5px solid #DDD;
+    border-bottom: 5px solid #fbf8f8;
 }
 /* span : 단어 영역 */
-#row #spanWord{
+#row .spanWord{
 
 }
 /* span : 체크박스 영역*/
@@ -64,8 +64,14 @@ body #wrap{
 /***************************************************************/
 /* label mouseover 스타일 */
 label{
-    font-weight: bold;
+    /*font-weight: bold;*/
+    color: orangered;
+}
+label1 {
     color: deepskyblue;
+}
+label2 {
+    color: orangered;
 }
 /* mouse over link */
 #divTable label:hover {
@@ -73,7 +79,7 @@ label{
 }
 /* selected link */
 #divTable label:active {
-    color: cadetblue;
+    color: #5F9EA0;
     padding: 1px 0px 0px 1px;
 }
 /***************************************************************/
@@ -81,9 +87,9 @@ input[type=checkbox]{
     visibility: hidden;
 }
 #divTable input[type=checkbox]:checked + label{
-    color: #3e66af;
+    color: #00BFFF;
 }
-#spanWord #repeatCnt{
+.spanWord #repeatCnt{
     margin-right: 2em;
     float:right;
 }
@@ -101,6 +107,8 @@ input[type=checkbox]{
     display: table-cell;
     width: 50%;
 }
+
+/***************************************************************/
 /* facebook button style */
 #social_cell #facebook-signin {
     cursor:pointer;
@@ -109,11 +117,11 @@ input[type=checkbox]{
     color: #444;
     border-radius: 5px;
     border: thin solid #888;
-    box-shadow: 1px 1px 1px grey;
+    /*box-shadow: 1px 1px 1px grey;*/
     white-space: nowrap;
 }
 #facebook-signin #icon {
-    background: url(./FB-f-Logo__blue_29.png) transparent 5px 50% no-repeat;
+    background: url(../logos/social/FB-f-Logo__blue_29.png) transparent 5px 50% no-repeat;
     display: inline-block;
     vertical-align: middle;
     width: 42px;
@@ -136,11 +144,11 @@ input[type=checkbox]{
     color: #444;
     border-radius: 5px;
     border: thin solid #888;
-    box-shadow: 1px 1px 1px grey;
+    /*box-shadow: 1px 1px 1px grey;*/
     white-space: nowrap;
 }
 #google-signin #icon {
-    background: url(./g-normal.png) transparent 5px 50% no-repeat;
+    background: url(../logos/social/g-normal.png) transparent 5px 50% no-repeat;
     display: inline-block;
     vertical-align: middle;
     width: 42px;
@@ -153,4 +161,42 @@ input[type=checkbox]{
     font-weight: bold;
     font-family: 'Roboto', sans-serif;
     font-size: 14px;
+}
+
+/* signout button style */
+#signout {
+    margin-top: 0.5em;
+    background: #FFFFFF;
+    color: #444;
+    border-radius: 5px;
+    border: thin solid #888;
+    /*box-shadow: 1px 1px 1px grey;*/
+    white-space: nowrap;
+}
+/***************************************************************/
+/* paging area Style*/
+p#pageCnt {
+    display: inline-block;
+    margin: 1em;
+}
+/* referenced by http://css3button.net/ */
+button[name=pagingBtn] {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    color: black;
+    background: -moz-linear-gradient( top, #fff3db 0%, #cae1ed 25%, #93d4f7);
+    background: -webkit-gradient( linear, left top, left bottom, from(white), color-stop(0.25, white), to(white));
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
+    border-radius: 4px;
+    border: 1px solid black;
+    -moz-box-shadow: 0px 1px 3px rgba(000,000,000,0.5), inset 0px -1px 0px rgba(255,255,255,0.7);
+    /* -webkit-box-shadow: 0px 1px 3px black, inset 0px -1px 0px rgba(255,255,255,0.7); */
+    /* box-shadow: 0px 1px 3px rgba(000,000,000,0.5), inset 0px -1px 0px rgba(255,255,255,0.7); */
+    /* text-shadow: 0px -1px 1px rgba(000,000,000,0.2), 0px 1px 0px rgba(255,255,255,0.3); */
+}
+/***************************************************************/
+/* modal area */
+input#title{
+    width: 80%;
 }

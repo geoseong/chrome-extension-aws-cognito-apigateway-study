@@ -3,16 +3,40 @@
   <head>
     <meta charset="UTF-8">
     <title>아는단어</title>
-    <script type="text/javascript" src="index.js"></script>
-    <link rel="stylesheet" href="./wik_style.css">
+    <link rel="stylesheet" href="stylesheet/modal.css">
+    <link rel="stylesheet" href="stylesheet/wik_style.css">
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
   </head>
   <body>
     <div id="wrap">
       <div id="loginarea"></div>
+      <div id="modal"></div>
       <div id="context">
+        <div id="paging"></div>
         <div id="divTable"></div>
       </div>
     </div>
+    <!--Loading the SDK for JavaScript-->
+    <!--<script src="https://sdk.amazonaws.com/js/aws-sdk-2.7.20.min.js"></script>-->
+    <!-- Amazon Cognito Identity SDK for JavaScript -->
+    <!--https://github.com/aws/amazon-cognito-identity-js/blob/58ed8837be982bd85d4728f43776855f99144ea6/README.md-->
+    <script type="text/javascript" src="lib/apiGateway/axios/dist/axios.standalone.js"></script>
+    <script type="text/javascript" src="lib/apiGateway/CryptoJS/rollups/hmac-sha256.js"></script>
+    <script type="text/javascript" src="lib/apiGateway/CryptoJS/rollups/sha256.js"></script>
+    <script type="text/javascript" src="lib/apiGateway/CryptoJS/components/hmac.js"></script>
+    <script type="text/javascript" src="lib/apiGateway/CryptoJS/components/enc-base64.js"></script>
+    <script type="text/javascript" src="lib/apiGateway/url-template/url-template.js"></script>
+    <script type="text/javascript" src="lib/apiGateway/apiGatewayCore/sigV4Client.js"></script>
+    <script type="text/javascript" src="lib/apiGateway/apiGatewayCore/apiGatewayClient.js"></script>
+    <script type="text/javascript" src="lib/apiGateway/apiGatewayCore/simpleHttpClient.js"></script>
+    <script type="text/javascript" src="lib/apiGateway/apiGatewayCore/utils.js"></script>
+    <script type="text/javascript" src="lib/apigClient.js"></script>
+    <script src="lib/aws-cognito-sdk.min.js"></script>
+    <script src="lib/amazon-cognito-identity.min.js"></script>
+    <script src="lib/aws-sdk.js"></script>
+    <script type="text/javascript" src="lib/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="scripts/modal.js"></script>
+    <script type="text/javascript" src="scripts/index.js"></script>
+    <script type="text/javascript" src="scripts/awsCognito.js"></script>
   </body>
 </html>

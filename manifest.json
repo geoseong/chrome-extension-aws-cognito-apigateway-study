@@ -1,24 +1,19 @@
 {
   "name": "아는단어",
-  "version": "1.7",
+  "version": "2.0",
   "description": "Words I know",
   "manifest_version": 2,
   "background": {
     "persistent": false,
-    "scripts": ["background.js"]
-  },
-  "browser_action": {
-    "default_icon": "wik_19.png",
-    "default_popup": "index.html",
-    "browser_style": true
+    "scripts": ["scripts/background.js", "scripts/installation.js"]
   },
   "icons": {
-    "16": "wik_16.png",
-    "19": "wik_19.png",
-    "48": "wik_48.png",
-    "128": "wik_128.png"
+    "16": "./logos/wik/wik_16.png",
+    "19": "./logos/wik/wik_19.png",
+    "48": "./logos/wik/wik_48.png",
+    "128": "./logos/wik/wik_128.png"
   },
-  "content_security_policy": "script-src 'self' https://apis.google.com; object-src 'self'"
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
   ,
   "permissions": [
     "notifications",
@@ -27,6 +22,7 @@
     "storage",
     "unlimitedStorage",
     "tabs",
+    "activeTab",
     "<all_urls>",
     "identity",
     "*://www.facebook.com/*",
