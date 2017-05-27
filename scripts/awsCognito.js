@@ -5,7 +5,6 @@ var apigClient
 var additionalParams;
 
 chrome.runtime.onMessage.addListener(onload);
-console.log('awsCognito');
 
 // auto token refresh
 function getTokenRefreshed(inputCredential){
@@ -15,12 +14,8 @@ function getTokenRefreshed(inputCredential){
         if (error) {
             console.error(error);
         } else {
-            console.log('Successfully logged!');
-            console.log("[[getTokenRefreshed:Amazon Cognito credentials]]\n");
-            console.log(AWS.config.credentials);
-
+            console.log('token refreshed');
             var cred = AWS.config.credentials;
-
             apigClient = apigClientFactory.newClient({
                 accessKey: cred.accessKeyId,
                 secretKey: cred.secretAccessKey,
@@ -33,11 +28,7 @@ function getTokenRefreshed(inputCredential){
 
 function onload(message){
     try{
-        let msg = JSON.stringify(message);
-        console.log('[awsCognito.js: msg]', msg);
-
         if (!message.accesstoken){
-            console.log('[awsCognito] !message.accesstoken');
             messageListener();
             return;
         }else if(message.expiration_time){
@@ -46,7 +37,6 @@ function onload(message){
         }
     }catch(e){
         console.error(e);
-        // console.log('[awsCognito] !message.accesstoken');
         messageListener();
         return;
     }
@@ -54,10 +44,6 @@ function onload(message){
     provider = message.provider;
     accesstoken = message.accesstoken;
     userNm = message.name;
-
-    console.log('[[awsCognito.js]] onload message!!');
-    console.log(message);
-	console.log('paramTitle', title);	console.log('paramTag', tag);
 
     let htmls = `
           <p style="width: 100%; text-align:center">로딩 중..잠시 기다려 주세요...</p>
@@ -81,13 +67,11 @@ function startAWSCognito(param){
         // 전역변수 provider
         provider = param.provider;
         chrome.storage.sync.get(function (data) {
-            console.log('[startAWSCognito:data]\n', data);
-
             // 전역변수 context
             context = data.context;
 
             if (param.provider==="facebook") {
-                userId = data.userId.facebook;
+                userId = data.facebook.id;
                 inputCredential = {
                     IdentityPoolId: "ap-northeast-2:33a21208-23c8-4cc2-a59d-5cdd166c6554",   // yaenedeul
                     Logins: {
@@ -95,7 +79,7 @@ function startAWSCognito(param){
                     }
                 };
             } else {
-                userId = data.userId.google;
+                userId = data.google.id;
                 inputCredential = {
                     IdentityPoolId: "ap-northeast-2:33a21208-23c8-4cc2-a59d-5cdd166c6554",   // yaenedeul
                     Logins: {
@@ -103,7 +87,6 @@ function startAWSCognito(param){
                     }
                 };
             }
-            console.log('[startAWSCognito:inputCredential]', inputCredential);
             resolve(inputCredential);
         });
     });
@@ -130,10 +113,6 @@ function setAWSCognito(inputCredential) {
 
             // Cognito Identity에 생성된 사용자 identity Id를 storage에 저장.
             sendIdentityId(identityId);
-
-            console.log("[[getAWSCredential:Amazon Cognito credentials]]\n");
-            console.log(credentials);
-
             resolve({accessKeyId, secretAccessKey, sessionToken, identityId});
         });
     });

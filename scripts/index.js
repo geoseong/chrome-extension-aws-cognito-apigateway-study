@@ -16,7 +16,7 @@ function messageListener(message) {
             spreadWords(message.data, 0);
         }
     }catch(e){
-        console.log(e);
+        // console.log(e);
     }
 
     // Promise 패턴. then 부분은 callback.
