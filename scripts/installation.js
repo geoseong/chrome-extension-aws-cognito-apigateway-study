@@ -11,7 +11,7 @@ chrome.runtime.onInstalled.addListener(function() {
             console.log("Got expected error: " + chrome.extension.lastError.message);
         }
     });
-    console.log('아는단어를 이용하시는 여러분 환영합니다~');
+    console.log('아는단어를 이용하시는 여러분 환영합니다~\n아는단어는 iPhone, Android 앱스토어에서 다운로드 받을 수 있습니다.');
     chrome.storage.sync.set({
         "facebook": {"id": '', "name": ''},
         "google": {"id": '', "name": ''}
@@ -47,4 +47,3 @@ chrome.contextMenus.onClicked.addListener(function (clickData) {
     chrome.notifications.create('notifImport', notifOptions);
 });
 /*********** end : Context Menu 구현 & 선택데이터 서버통신 부분 **********/
-

@@ -193,19 +193,17 @@ function getUserInfo(provider, intractive=true) {
 
 // 5. 로그아웃 버튼 눌렀을 때
 function revoke() {
-    return new Promise((resolve, reject) => {
-        document.querySelector('#divTable ').innerHTML = '';
-        chrome.notifications.create('notifImport', {
-            type: "basic",
-            iconUrl: "./logos/wik/wik_48.png",
-            title: "아는단어",
-            message: "로그아웃 되었습니다."
-        });
-        chrome.runtime.sendMessage({"type": "removeCachedToken"}, ()=>{
-            window.close();
-        });
+    document.querySelector('#divTable').innerHTML = '';
+    var sendRemoveToken = chrome.runtime.sendMessage({"type": "removeCachedToken"}, ()=>{
         chrome.runtime.reload();    // runtime message 초기화.
+        window.close();
     });
+    chrome.notifications.create('notifImport', {
+        type: "basic",
+        iconUrl: "./logos/wik/wik_48.png",
+        title: "아는단어",
+        message: "로그아웃 되었습니다."
+    }, sendRemoveToken);
 }
 
 
