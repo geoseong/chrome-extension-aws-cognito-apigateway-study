@@ -4,13 +4,6 @@ var context;
 var provider;
 var expiration_time;
 var refresh = false;
-/*
-this.info에 저장되는 속성
-1. name
-2. picture
-3. id
- */
-
 let providers = {
   facebook: {
       // 본 서버용
@@ -53,12 +46,13 @@ let providers = {
             let r = e.target;
             if (r.status === 200) {
                 let response = JSON.parse(r.responseText);
+                // response에서 받는 것 : 1. access_token, 2. expires_in, 3. token_type
                 // 전역변수 정의
                 provider = "facebook";
                 access_token = response.access_token;
                 expiration_time = response.expires_in;  // facebook 만료시간
                 this.token = access_token;    // xhrWithAuth의 첫째 파라미터가 this이고, authorize에서 this.token을 검사해서 중간에 짤라먹는 역할을 한다.
-
+                console.log('[background.js:response]', response);
                 resolve(access_token);
             } else {
                 reject([r.status, r.responseText]);
@@ -102,23 +96,27 @@ let providers = {
         }
 
         xhrWithAuth(this, 'GET', 'https://graph.facebook.com/me?fields=name,picture', interactive).then(response => {
-            // this.info에 저장되는 속성
+            // [response에 담긴 속성]
+            // 1. status
+            // 2. response
+            // [this.info에 저장되는 속성]
             // 1. name
             // 2. picture
             // 3. id
             this.user_info = JSON.parse(response.response);
-            resolve({userNm: this.user_info.name, provider: provider, accesstoken: access_token, data: context});
+            console.log('#this.user_info#', this.user_info);
+            resolve({userNm: this.user_info.name, userId: this.user_info.id, picture: this.user_info.picture.data.url, provider: provider, accesstoken: access_token, data: context});
         });
       });
     }
   },
   google: {
       // 본 서버용
-      clientId: "775980557340-qmc8sa7a5d8h93ak0nlkjc6h4gbgagvo.apps.googleusercontent.com",
-      client_secret: "CIbXSS953CHXvkmDxujzRsn-",
+      // clientId: "775980557340-qmc8sa7a5d8h93ak0nlkjc6h4gbgagvo.apps.googleusercontent.com",
+      // client_secret: "CIbXSS953CHXvkmDxujzRsn-",
       // 로컬 테스트용
-      // clientId: "775980557340-18c360oopd9ifnf6oit5jmv5lp355gft.apps.googleusercontent.com",
-      // client_secret: "uo_LV0aA45aT04ofGnpDdeUy",
+      clientId: "775980557340-18c360oopd9ifnf6oit5jmv5lp355gft.apps.googleusercontent.com",
+      client_secret: "uo_LV0aA45aT04ofGnpDdeUy",
       token: null,
       user_info: null,      // this.user_info 로 쓰임.
       scopes: ["openid", "email", "profile"],
@@ -184,15 +182,15 @@ let providers = {
               xhr.onreadystatechange = function() {//Call a function when the state changes.
                   if(xhr.readyState == 4){
                       if(xhr.status == 200){
-                          provider = "google";  // 전역변수 정의
                           var response = JSON.parse(xhr.response);
-                          // chrome.storage에 id_token 저장
+                          console.log('[google.response]', response);
                           var id_token = response.id_token;
-                          chrome.storage.sync.set({	"id_token": id_token	});
-                          // 전역변수
+                          // 전역변수 정의
+                          provider = "google";
                           expiration_time = response.expires_in;    // google toke 만료시간
                           access_token = id_token;    // xhrWithAuth의 첫째 파라미터가 this이고, authorize에서 this.token을 검사해서 중간에 짤라먹는 역할을 한다.
                           var googlaccess_token = response.access_token;
+                          chrome.storage.sync.set({	"id_token": id_token	}); // chrome.storage에 id_token 저장
                           this.token = googlaccess_token;
                           resolve(googlaccess_token);
                       }else if(xhr.status === 400) {
@@ -218,7 +216,6 @@ let providers = {
 
       authResult(params, redirectUri) {
           return new Promise((resolve, reject) => {
-
             if (params.get("error")) {
                 reject(new Error(params.get("error_description")));
             } else if (params.get("code")) {
@@ -251,12 +248,16 @@ let providers = {
               return;
           }
           xhrWithAuth(this, 'GET', 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json', interactive).then(response => {
-              // this.info에 저장되는 속성
+              // [response에 담긴 속성]
+              // 1. status
+              // 2. response
+              // [this.info에 저장되는 속성]
               // 1. name
               // 2. picture
               // 3. id
               this.user_info = JSON.parse(response.response);
-              resolve({userNm: this.user_info.name, provider: provider, accesstoken: access_token, data: context});
+              console.log('#this.user_info#', this.user_info);
+              resolve({userNm: this.user_info.name, userId: this.user_info.id, picture: this.user_info.picture, provider: provider, accesstoken: access_token, data: context});
           });
         });
       }
@@ -300,14 +301,14 @@ function authorize(provider, interactive) {
     };
 
     chrome.identity.launchWebAuthFlow(options, function(redirectURL) {
-          if (chrome.runtime.lastError) {
-            chrome.runtime.sendMessage({name: ''});
-            reject(new Error(chrome.runtime.lastError.message));
-            return;
-          }
-          // #access_token={value}&refresh_token={value} or #code={value}
-          let params = parseSearchParams(redirectURL);
-          provider.authResult(params, redirectUri).then(resolve);
+      if (chrome.runtime.lastError) {
+        chrome.runtime.sendMessage({name: ''});
+        reject(new Error(chrome.runtime.lastError.message));
+        return;
+      }
+      // #access_token={value}&refresh_token={value} or #code={value}
+      let params = parseSearchParams(redirectURL);
+      provider.authResult(params, redirectUri).then(resolve);
     });
   });
 }
@@ -341,32 +342,29 @@ function googleOrfacebook(message){
 function getSocialAccount(message) {
     // providers[message.provider].getUserInfo(message.interactive).then(function (user) {
     providers[message.provider].getUserInfo(true).then(function (user) {
-        sendData(user);
+        sendData(user); // user : getUserInfo() 메소드 안에 있는 resolve(param) 안 param 값이 user가 된다.
     });
 }
 
 /** AWS Cognito identity pool token auto refresh **/
 function autoRefresh(clear){
+    // 가장 첫 호출때는 clear가 false. // autoRefresh 멈추고싶으면 clear를 true로.
     refresh = false;
+
     var before_expiration = 0;
-    // 1000밀리초 = 1초
-    // 60초 = 1분
-    // 60분 = 1시간
-    // 24시간 = 1일
-    // 30일 = 1달
     if(provider==="facebook"){
         before_expiration = Number(1000*60*60*24);
-    }else{
-        // provider = google
+    }else{  // provider = google
         before_expiration = Number(1000*60*5);
     }
+
     var interval = setInterval(refreshToken, (expiration_time*1000)-before_expiration);     // Interval 시작
     function refreshToken(){
         try{
             if(clear){
+                providers[provider].user_info = null;
                 clearInterval(interval);        // Interval 종료
             }else {
-                providers[provider].user_info = null;
                 providers[provider].getUserInfo(true).then(function () {
                     chrome.runtime.sendMessage({
                         provider: provider,
@@ -377,6 +375,7 @@ function autoRefresh(clear){
             }
         }catch(e){
             console.log(e);
+            providers[provider].user_info = null;
             clearInterval(interval);        // Interval 종료
         }
     }
@@ -387,8 +386,8 @@ function sendData(params){
     if(refresh){
         autoRefresh(false);  // auto Refresh 시작. 해당 메소드 실행된 이후에는 다음번 sendData때 더이상 실행되지 않게 하기 위해 autoRefresh 안의 전역변수 refresh를 false로 스위칭
     }
-    if(!provider)   refresh = true;     // provider 로그인 이력이 전무할때 flag를 바꿔서 다음에 로그인 시에는 token autoRefresh가 가능하게 설정.
-    chrome.runtime.sendMessage({data: params.data, name: params.userNm, provider: provider, accesstoken: access_token});
+    if(!provider)   refresh = true;     // provider 로그인 이력(소셜로그인)이 전무할때 flag를 바꿔서 다음에 로그인 시에는 autoRefresh() 호출되게 설정.
+    chrome.runtime.sendMessage({data: params.data, name: params.userNm, userId: params.userId, picture: params.picture, provider: provider, accesstoken: access_token});
 }
 
 /** 가장 첫 시작 부분 */
@@ -402,6 +401,8 @@ function notify(message) {
         providers["google"].clear();
         provider = null;
         autoRefresh(true);
+        console.log('logout');
+        chrome.runtime.reload();    // runtime message 초기화.
       break;
     default:
 		try{

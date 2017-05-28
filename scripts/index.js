@@ -194,22 +194,26 @@ function getUserInfo(provider, intractive=true) {
 // 5. 로그아웃 버튼 눌렀을 때
 function revoke() {
     document.querySelector('#divTable').innerHTML = '';
-    var sendRemoveToken = chrome.runtime.sendMessage({"type": "removeCachedToken"}, ()=>{
-        chrome.runtime.reload();    // runtime message 초기화.
-        window.close();
-    });
-    chrome.notifications.create('notifImport', {
+
+    chrome.notifications.create('notifiLogout', {
         type: "basic",
         iconUrl: "./logos/wik/wik_48.png",
         title: "아는단어",
         message: "로그아웃 되었습니다."
-    }, sendRemoveToken);
+    }, ()=>{
+        // setTimeout 안주면 notifications보다 sendMessage가 먼저 떠버린다..
+        setTimeout(function(){
+            chrome.runtime.sendMessage({"type": "removeCachedToken"}, ()=>{
+            });
+        }, 500);
+        // window.close();
+    });
+
 }
 
-
-window.onload = () => {
-    sendToBackgroundJS('', '');
-};
+// window.onload = () => {
+//     sendToBackgroundJS('', '');
+// };
 function sendToBackgroundJS(paramTitle, paramTag){
     chrome.storage.sync.get(function (data) {
         var provider;

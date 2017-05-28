@@ -1,10 +1,54 @@
 // User Contents Info
-var userId, userNm, context, title, tag, provider, accesstoken;
+var userId, userNm, userPic, context, title, tag, provider, accesstoken;
 // AWS Connection Info
 var apigClient
 var additionalParams;
+var syncClient;
+
+// paramTitle, paramTag 값 setter
+function setcontentTitleTag(paramTitle, paramTag){
+    title = paramTitle;
+    tag = paramTag;
+}
 
 chrome.runtime.onMessage.addListener(onload);
+function onload(message){
+    console.log('[awsCognito.js:message]', message);
+    try{
+        if (!message.accesstoken){
+            messageListener();
+            return;
+        }else if(message.expiration_time){
+            startAWSCognito({provider:message.provider, accesstoken:message.accesstoken}).then(getTokenRefreshed);
+            return;
+        }
+    }catch(e){
+        console.error(e);
+        messageListener();
+        return;
+    }
+    // 전역변수
+    provider = message.provider;
+    accesstoken = message.accesstoken;
+    userNm = message.name;
+    userId = message.userId;
+    userPic = message.picture;
+
+    let htmls = `
+          <p style="width: 100%; text-align:center">로딩 중..잠시 기다려 주세요...</p>
+    `;
+    document.querySelector('#loginarea').innerHTML = htmls;
+
+    getAllFederatedIdentities(true).then((IdentityPoolId)=>{
+        console.log('[awsCognito.js:IdentityPoolId]', IdentityPoolId);
+        // 본래 코드
+        startAWSCognito({IdentityPoolId, provider, accesstoken})
+            .then(setAWSCognito)
+            .then(getAWSCredential);
+    })
+
+
+} //end onload()
 
 // auto token refresh
 function getTokenRefreshed(inputCredential){
@@ -26,41 +70,6 @@ function getTokenRefreshed(inputCredential){
     });
 }
 
-function onload(message){
-    try{
-        if (!message.accesstoken){
-            messageListener();
-            return;
-        }else if(message.expiration_time){
-            startAWSCognito({provider:message.provider, accesstoken:message.accesstoken}).then(getTokenRefreshed);
-            return;
-        }
-    }catch(e){
-        console.error(e);
-        messageListener();
-        return;
-    }
-    // 전역변수
-    provider = message.provider;
-    accesstoken = message.accesstoken;
-    userNm = message.name;
-
-    let htmls = `
-          <p style="width: 100%; text-align:center">로딩 중..잠시 기다려 주세요...</p>
-      `;
-    document.querySelector('#loginarea').innerHTML = htmls;
-
-    startAWSCognito({provider, accesstoken})
-        .then(setAWSCognito)
-        .then(getAWSCredential);
-
-}
-// paramTitle, paramTag 값 setter
-function setcontentTitleTag(paramTitle, paramTag){
-	title = paramTitle;
-	tag = paramTag;
-}
-
 function startAWSCognito(param){
     return new Promise((resolve, reject) => {
         var inputCredential;
@@ -71,23 +80,24 @@ function startAWSCognito(param){
             context = data.context;
 
             if (param.provider==="facebook") {
-                userId = data.facebook.id;
+                // userId = data.facebook.id;
                 inputCredential = {
-                    IdentityPoolId: "ap-northeast-2:33a21208-23c8-4cc2-a59d-5cdd166c6554",   // yaenedeul
+                    IdentityPoolId: param.IdentityPoolId,   // yaenedeul
                     Logins: {
                         'graph.facebook.com': param.accesstoken     // message.access_token
                     }
                 };
             } else {
-                userId = data.google.id;
+                // userId = data.google.id;
                 inputCredential = {
-                    IdentityPoolId: "ap-northeast-2:33a21208-23c8-4cc2-a59d-5cdd166c6554",   // yaenedeul
+                    IdentityPoolId: param.IdentityPoolId,   // yaenedeul
                     Logins: {
                         'accounts.google.com': param.accesstoken
                     }
                 };
             }
             resolve(inputCredential);
+            console.log('[awsCognito.js:inputCredential]', inputCredential);
         });
     });
 }
@@ -104,6 +114,9 @@ function setAWSCognito(inputCredential) {
                 console.log("Error: \n", err);
                 return;
             }
+            // cognito Federated Identity Dataset에 자료 넣기.
+            insertDataSet({userId: userId, userNm: userNm, picture: userPic});
+
             var accessKeyId = credentials.accessKeyId;
             var secretAccessKey = credentials.secretAccessKey;
             var sessionToken = credentials.sessionToken;
@@ -118,6 +131,7 @@ function setAWSCognito(inputCredential) {
     });
 }
 
+
 // Cognito Federated Identity
 function getAWSCredential(params){
     return new Promise((resolve, reject) => {
@@ -128,6 +142,8 @@ function getAWSCredential(params){
                 sessionToken: params.sessionToken,
                 region: "ap-northeast-2"
             });
+
+            // DynamoDB 데이터넣기
             var identityId = params.identityId;
             var params_getUserInfo = {
                 user_id: identityId
@@ -227,103 +243,70 @@ function sendIdentityId(identityId){
     } //end if
 }
 
+function insertDataSet(params){
+    console.log('[insertDataSet:params]', params);
+    // 이미 소셜로그인을 한 상태이면 로그아웃 안 한 상태로 창이 새로 띄워질때 넘겨받는 파라미터가 name뿐이므로,
+    // userId와 profilePic 정보가 dataset에서 제거된다. 그래서 userId와 picture가 undefined면 return.
+    if(!params.userId || !params.picture)   return;
 
+    // parameter : params.userId, params.userNm, params.picture
+    syncClient = new AWS.CognitoSyncManager();
 
-// [Not Used] Called when an identity provider has a token for a logged in user
-function userLoggedIn(creds, providerName, token) {
-    creds.params.Logins = {};
-    creds.params.Logins[providerName] = token;
-// Expire credentials to refresh them on the next request
-    creds.expired = true;
-}
-
-// [Not Used] cognitoUserPool 회원가입.
-function cognitoUserPoolSignUp(){
-    // AWSCognito.config.region = 'us-east-1';
-
-    var poolData = {
-        region : 'us-northeast-2',
-        // apiGWEndpoint : '',  // Token을 얻은 후에 api를 호출할 주소
-        // UserPoolId : 'ap-northeast-2_4TsUyfJmr', // Geoseong
-        // ClientId : '3hfkbs0op12mg3g0dk6os1gqus'
-        UserPoolId : 'ap-northeast-2_p0PZvtZzW',    // yaenedeul
-        ClientId : '2k6u2eoqp8rv5votdda8qfimm2'
-    };
-    var userPool = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserPool(poolData);
-
-    var userData = {
-        Username : 'geoseong', // your username here
-        Pool : userPool
-    };
-
-    var attributeList = [];
-    var dataName = {
-        Name : 'name',
-        Value : 'geoseong' // your email here
-    };
-    var dataEmail = {
-        Name : 'email',
-        Value : 'geoseong@geoseong.edu' // your email here
-    };
-    var dataPhoneNumber = {
-        Name : 'phone_number',
-        Value : '01020236697' // your phone number here with +country code and no delimiters in front
-    };
-    var dataPicture = {
-        Name : 'picture',
-        Value : 'https://lh5.googleusercontent.com/-bABKlFiwxH4/AAAAAAAAAAI/AAAAAAAAAPE/dNiva9mABsI/photo.jpg'
-    }
-    var dataGender = {
-        Name : 'gender',
-        Value : 'male'
-    }
-    var dataBirthdate = {
-        Name : 'birthdate',
-        Value : '1989-01-19'
-    }
-
-    var attributeName = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute(dataName);
-    var attributeEmail = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute(dataEmail);
-    var attributePhoneNumber = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute(dataPhoneNumber);
-    var attributePicture = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute(dataPicture);
-    var attributeGender = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute(dataGender);
-    var attributeBirthdate = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute(dataBirthdate);
-
-    attributeList.push(attributeName);
-    attributeList.push(attributeEmail);
-    attributeList.push(attributePhoneNumber);
-    attributeList.push(attributePicture);
-    attributeList.push(attributeGender);
-    attributeList.push(attributeBirthdate);
-
-    console.log('[[attributeList]]');
-    console.log(attributeList);
-
-    var cognitoUser;
-    // param1 : username , param2 : password, param3 : pushed attributeList above
-    // userPool.signUp('username', '1234567890', attributeList, null, function(err, result){
-    userPool.signUp('geoseong','1q2w#E',attributeList, null, function(err, result){
-        console.log('[cognito userPool Result]');
-        // result.storage에 cognito federated identity Dataset정보가 있음
-        console.log(result);
-        if (err) {
-            alert(err);
-            console.log('[cognito userPool err]');
-            console.log(err);
-        // [case1] app clients 생성 시 client secret에 체크하면
-            // NotAuthorizedException: Unable to verify secret hash for client 29dat2kbufu1ipenf4ik8e4lk7
-        // [case2] User Pools -> Policies의 비번 체크로직에 안맞으면 뜸.
-            // InvalidPasswordException: Password did not conform with policy: Password not long enough
-        // [case3] User Pools -> Attributes 에서 필요로 하는 정보를 체크했는데 그 정보가 안채워졌을때.
-            // Error: Attributes did not conform to the schema: name: The attribute is required
-            // picture: The attribute is required
-            // gender: The attribute is required
-            // birthdate: The attribute is require
+    // 없으면 만든다.
+    syncClient.openOrCreateDataset('userInfo', function(err, dataset) {
+        if(err) {
+            console.error(err);
             return;
         }
-        cognitoUser = result.user;
-        console.log('[cognito userPool Result]');
-        console.log(result);
-        console.log('user name is : ' + cognitoUser.getUsername());
+        // 사용자 pool id의 dataset 내용 가져오기.
+        dataset.get('userInfo', function(err, dataset) {
+            if(err) console.log('[insertDataSet:err]', err);
+            console.log('[insertDataSet:dataset.get]', dataset);
+        });
+        // 사용자 pool id의 dataset 내용 수정/삽입하기
+        var subject, contents;
+        subject = 'userInfo';
+        contents = JSON.stringify({
+            'userId' : params.userId,
+            'userName' : params.userNm,
+            'profilePic' : params.picture
+        });
+        dataset.put(subject, contents, function(err, record){
+            if(err) {
+                console.log('[dataset.put error]', err);
+                return;
+            }
+            console.log('dataset.record', record);
+            dataset.synchronize({
+                onSuccess: function(data, newRecords) {
+                    // Your handler code here
+                    console.log('onSuccess:data', data);
+                    console.log('onSuccess:newRecords', newRecords);
+                },
+                onFailure: function(err) {
+                    console.log('onFailure', err);
+                },
+                onConflict: function(dataset, conflicts, callback) {
+                    var resolved = [];
+                    console.log(dataset);
+                    console.log('onConflict', conflicts);
+                    // for (var i=0; i<conflicts.length; i++) {
+                    //     console.log(conflicts[i]);
+                    // }
+                    dataset.resolve(resolved, function() {
+                        // return callback(true);
+                        console.log('resolve', resolved);
+                    });
+                },
+                onDatasetDeleted: function(dataset, datasetName, callback) {
+                    console.log('onDatasetDeleted');
+                    // return callback(true);
+                },
+                onDatasetsMerged: function(dataset, datasetNames, callback) {
+                    console.log('onDatasetsMerged');
+                    // return callback(false);
+                }
+            });
+        });
     });
 }
