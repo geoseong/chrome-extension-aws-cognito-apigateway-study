@@ -11,43 +11,57 @@ function setcontentTitleTag(paramTitle, paramTag){
     tag = paramTag;
 }
 
+function revokeSocialLogin(){
+    provider = null;
+    accesstoken = null;
+}
+
 chrome.runtime.onMessage.addListener(onload);
 function onload(message){
-    console.log('[awsCognito.js:message]', message);
-    try{
-        if (!message.accesstoken){
+    chrome.storage.sync.get(function (data) {
+        if(data.accesstoken) {
+            accesstoken = data.accesstoken; // 전역변수
+        }else{
+            accesstoken = null;
+        }
+        var IdentityPoolId = 'ap-northeast-2:33a21208-23c8-4cc2-a59d-5cdd166c6554';
+        try{
+            if (!accesstoken){
+                messageListener();
+                return;
+            }else if(message.expiration_time){
+                // getAllFederatedIdentities(true).then((IdentityPoolId)=>{
+                    var params = {IdentityPoolId : IdentityPoolId, provider:message.provider, accesstoken:message.accesstoken};
+                    startAWSCognito(params).then(getTokenRefreshed);
+                // });
+                return;
+            }
+        }catch(e){
+            console.error(e);
             messageListener();
             return;
-        }else if(message.expiration_time){
-            startAWSCognito({provider:message.provider, accesstoken:message.accesstoken}).then(getTokenRefreshed);
-            return;
         }
-    }catch(e){
-        console.error(e);
-        messageListener();
-        return;
-    }
-    // 전역변수
-    provider = message.provider;
-    accesstoken = message.accesstoken;
-    userNm = message.name;
-    userId = message.userId;
-    userPic = message.picture;
 
-    let htmls = `
-          <p style="width: 100%; text-align:center">로딩 중..잠시 기다려 주세요...</p>
-    `;
-    document.querySelector('#loginarea').innerHTML = htmls;
+        // 전역변수
+        provider = message.provider;
+        userNm = message.name;
+        userId = message.userId;
+        userPic = message.picture;
 
-    getAllFederatedIdentities(true).then((IdentityPoolId)=>{
-        console.log('[awsCognito.js:IdentityPoolId]', IdentityPoolId);
-        // 본래 코드
-        startAWSCognito({IdentityPoolId, provider, accesstoken})
-            .then(setAWSCognito)
-            .then(getAWSCredential);
-    })
+        let htmls = `
+              <p style="width: 100%; text-align:center">로딩 중..잠시 기다려 주세요...</p>
+        `;
+        document.querySelector('#loginarea').innerHTML = htmls;
 
+        // getAllFederatedIdentities(true).then((IdentityPoolId)=>{
+        //     console.log('[awsCognito.js:IdentityPoolId]', IdentityPoolId);
 
+            startAWSCognito({IdentityPoolId, provider, accesstoken})
+                .then(setAWSCognito)
+                .then(getAWSCredential);
+        // });
+
+    });
 } //end onload()
 
 // auto token refresh
@@ -97,7 +111,6 @@ function startAWSCognito(param){
                 };
             }
             resolve(inputCredential);
-            console.log('[awsCognito.js:inputCredential]', inputCredential);
         });
     });
 }
@@ -223,7 +236,6 @@ function updateWordStatusUserIdPatch(userId, body) {
             // index.js messsageListener(message)에 파라미터 전달하여 단어뿌리기작업 실시
             // resolve({name: userNm, data: result.data});
         }).catch(function (result) {
-            console.log('[updateWordStatusUserIdPatch-fail]', result);
             // background.js 로 메시지 보냄 ( token을 다시 받아서 security token refresh를 위함. )
             chrome.runtime.sendMessage({provider: provider, type: 'getUserInfo'});
         });
@@ -244,7 +256,6 @@ function sendIdentityId(identityId){
 }
 
 function insertDataSet(params){
-    console.log('[insertDataSet:params]', params);
     // 이미 소셜로그인을 한 상태이면 로그아웃 안 한 상태로 창이 새로 띄워질때 넘겨받는 파라미터가 name뿐이므로,
     // userId와 profilePic 정보가 dataset에서 제거된다. 그래서 userId와 picture가 undefined면 return.
     if(!params.userId || !params.picture)   return;
@@ -261,7 +272,6 @@ function insertDataSet(params){
         // 사용자 pool id의 dataset 내용 가져오기.
         dataset.get('userInfo', function(err, dataset) {
             if(err) console.log('[insertDataSet:err]', err);
-            console.log('[insertDataSet:dataset.get]', dataset);
         });
         // 사용자 pool id의 dataset 내용 수정/삽입하기
         var subject, contents;
@@ -276,26 +286,21 @@ function insertDataSet(params){
                 console.log('[dataset.put error]', err);
                 return;
             }
-            console.log('dataset.record', record);
             dataset.synchronize({
                 onSuccess: function(data, newRecords) {
                     // Your handler code here
-                    console.log('onSuccess:data', data);
-                    console.log('onSuccess:newRecords', newRecords);
                 },
                 onFailure: function(err) {
                     console.log('onFailure', err);
                 },
                 onConflict: function(dataset, conflicts, callback) {
                     var resolved = [];
-                    console.log(dataset);
                     console.log('onConflict', conflicts);
                     // for (var i=0; i<conflicts.length; i++) {
                     //     console.log(conflicts[i]);
                     // }
                     dataset.resolve(resolved, function() {
                         // return callback(true);
-                        console.log('resolve', resolved);
                     });
                 },
                 onDatasetDeleted: function(dataset, datasetName, callback) {

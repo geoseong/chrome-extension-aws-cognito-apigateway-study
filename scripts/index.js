@@ -194,21 +194,10 @@ function getUserInfo(provider, intractive=true) {
 // 5. 로그아웃 버튼 눌렀을 때
 function revoke() {
     document.querySelector('#divTable').innerHTML = '';
-
-    chrome.notifications.create('notifiLogout', {
-        type: "basic",
-        iconUrl: "./logos/wik/wik_48.png",
-        title: "아는단어",
-        message: "로그아웃 되었습니다."
-    }, ()=>{
-        // setTimeout 안주면 notifications보다 sendMessage가 먼저 떠버린다..
-        setTimeout(function(){
-            chrome.runtime.sendMessage({"type": "removeCachedToken"}, ()=>{
-            });
-        }, 500);
-        // window.close();
+    revokeSocialLogin();    // awsCognito.js
+    chrome.runtime.sendMessage({"type": "removeCachedToken"}, ()=>{
+        window.close();
     });
-
 }
 
 // window.onload = () => {
@@ -224,7 +213,7 @@ function sendToBackgroundJS(paramTitle, paramTag){
 		else if(data.google.id.length > 0){
             provider = "google";
             this.user = data.google.id
-        }else{
+        }else{  // if(data.facebook.id.length <= 0 && data.google.id.length <= 0)
 			provider = "";
 		}
         // background.js 로 메시지 보냄 ( Node.js 서버에서 회원정보 조회를 위함 )

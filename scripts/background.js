@@ -22,9 +22,9 @@ let providers = {
         chrome.storage.sync.set({
             "context":"",
             "facebook":{"id": "", "name" : ""},
-            "id_token":""
+            "id_token":"",
+            "accesstoken":""
         });
-        chrome.runtime.sendMessage({"name":"", "accesstoken": ""});
     },
 
     getAuthURL(redirectURL) {
@@ -52,7 +52,6 @@ let providers = {
                 access_token = response.access_token;
                 expiration_time = response.expires_in;  // facebook 만료시간
                 this.token = access_token;    // xhrWithAuth의 첫째 파라미터가 this이고, authorize에서 this.token을 검사해서 중간에 짤라먹는 역할을 한다.
-                console.log('[background.js:response]', response);
                 resolve(access_token);
             } else {
                 reject([r.status, r.responseText]);
@@ -104,7 +103,6 @@ let providers = {
             // 2. picture
             // 3. id
             this.user_info = JSON.parse(response.response);
-            console.log('#this.user_info#', this.user_info);
             resolve({userNm: this.user_info.name, userId: this.user_info.id, picture: this.user_info.picture.data.url, provider: provider, accesstoken: access_token, data: context});
         });
       });
@@ -112,11 +110,11 @@ let providers = {
   },
   google: {
       // 본 서버용
-      // clientId: "775980557340-qmc8sa7a5d8h93ak0nlkjc6h4gbgagvo.apps.googleusercontent.com",
-      // client_secret: "CIbXSS953CHXvkmDxujzRsn-",
+      clientId: "775980557340-qmc8sa7a5d8h93ak0nlkjc6h4gbgagvo.apps.googleusercontent.com",
+      client_secret: "CIbXSS953CHXvkmDxujzRsn-",
       // 로컬 테스트용
-      clientId: "775980557340-18c360oopd9ifnf6oit5jmv5lp355gft.apps.googleusercontent.com",
-      client_secret: "uo_LV0aA45aT04ofGnpDdeUy",
+      // clientId: "775980557340-18c360oopd9ifnf6oit5jmv5lp355gft.apps.googleusercontent.com",
+      // client_secret: "uo_LV0aA45aT04ofGnpDdeUy",
       token: null,
       user_info: null,      // this.user_info 로 쓰임.
       scopes: ["openid", "email", "profile"],
@@ -128,9 +126,9 @@ let providers = {
           chrome.storage.sync.set({
               "context":"",
               "google":{"id": "", "name" : ""},
-              "id_token":""
+              "id_token":"",
+              "accesstoken":""
           });
-          chrome.runtime.sendMessage({"name":"", "accesstoken": ""});
       },
 
       getAuthURL(redirectURL) {
@@ -183,14 +181,13 @@ let providers = {
                   if(xhr.readyState == 4){
                       if(xhr.status == 200){
                           var response = JSON.parse(xhr.response);
-                          console.log('[google.response]', response);
                           var id_token = response.id_token;
                           // 전역변수 정의
                           provider = "google";
                           expiration_time = response.expires_in;    // google toke 만료시간
                           access_token = id_token;    // xhrWithAuth의 첫째 파라미터가 this이고, authorize에서 this.token을 검사해서 중간에 짤라먹는 역할을 한다.
                           var googlaccess_token = response.access_token;
-                          chrome.storage.sync.set({	"id_token": id_token	}); // chrome.storage에 id_token 저장
+                          // chrome.storage.sync.set({	"id_token": id_token	}); // chrome.storage에 id_token 저장
                           this.token = googlaccess_token;
                           resolve(googlaccess_token);
                       }else if(xhr.status === 400) {
@@ -256,7 +253,6 @@ let providers = {
               // 2. picture
               // 3. id
               this.user_info = JSON.parse(response.response);
-              console.log('#this.user_info#', this.user_info);
               resolve({userNm: this.user_info.name, userId: this.user_info.id, picture: this.user_info.picture, provider: provider, accesstoken: access_token, data: context});
           });
         });
@@ -325,13 +321,14 @@ function googleOrfacebook(message){
             // 현재 facebook or google에 로그인 한 이력이 있으면 if문에 빠져돌어감.
             // else. 한번도 로그인 한 적 없으므로 가입버튼 이벤트가 화면에 보이게 index.js로 넘김.
             if(message.provider === "facebook" || message.provider === "google" ){ //   && user_id.facebook.length > 0
+                provider = message.provider;
                 getSocialAccount(message);
                 return;
             }else{
                 sendData(data.context);
             } //end if
         }catch(e) {
-            console.log('[googleOrfacebook catch]', e);
+            console.log('[background.js catch]', e);
             sendData(data.context);
             return;
         }
@@ -359,6 +356,7 @@ function autoRefresh(clear){
     }
 
     var interval = setInterval(refreshToken, (expiration_time*1000)-before_expiration);     // Interval 시작
+    // var interval = setInterval(refreshToken, 2000);     // Interval 시작
     function refreshToken(){
         try{
             if(clear){
@@ -387,7 +385,11 @@ function sendData(params){
         autoRefresh(false);  // auto Refresh 시작. 해당 메소드 실행된 이후에는 다음번 sendData때 더이상 실행되지 않게 하기 위해 autoRefresh 안의 전역변수 refresh를 false로 스위칭
     }
     if(!provider)   refresh = true;     // provider 로그인 이력(소셜로그인)이 전무할때 flag를 바꿔서 다음에 로그인 시에는 autoRefresh() 호출되게 설정.
-    chrome.runtime.sendMessage({data: params.data, name: params.userNm, userId: params.userId, picture: params.picture, provider: provider, accesstoken: access_token});
+    chrome.storage.sync.set({
+        "accesstoken": access_token
+    }, () => {
+        chrome.runtime.sendMessage({data: params.data, name: params.userNm, userId: params.userId, picture: params.picture, provider: provider});
+    });
 }
 
 /** 가장 첫 시작 부분 */
@@ -396,13 +398,17 @@ function notify(message) {
     case "getUserInfo":
         googleOrfacebook(message);
       break;
-    case "removeCachedToken":
+      case "removeCachedToken":
         providers["facebook"].clear();
         providers["google"].clear();
-        provider = null;
-        autoRefresh(true);
-        console.log('logout');
-        chrome.runtime.reload();    // runtime message 초기화.
+        autoRefresh(true);  // auto token refresh를 멈춤
+        access_token = null;
+        chrome.notifications.create('notifiLogout', {
+            type: "basic",
+            iconUrl: "./logos/wik/wik_48.png",
+            title: "아는단어",
+            message: "로그아웃 되었습니다."
+        });
       break;
     default:
 		try{

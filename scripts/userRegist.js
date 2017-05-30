@@ -2,10 +2,11 @@ var maxresult = 60;    // Member must have value less than or equal to 60
 
 function getAllFederatedIdentities(justgetPoolId){
     return new Promise((resolve, reject) => {
+
         // 기능 : 현재 로그인된 아마존 사용자계정(관리자)이 갖고있는 Cognity Identity Pool 정보를 불러오기
         var credentials = new AWS.Credentials({        // 현 유저의 IAM user -> seurity credentials
-            accessKeyId: 'AKIAJHJATKHDBH36G4AA',
-            secretAccessKey: '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'
+            accessKeyId: '',
+            secretAccessKey: ''
         });
         var cognitoidentity = new AWS.CognitoIdentity({
             region: "ap-northeast-2",
