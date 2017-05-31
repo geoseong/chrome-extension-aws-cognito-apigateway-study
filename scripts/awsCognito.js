@@ -49,10 +49,10 @@ function onload(message){
         userId = message.userId;
         userPic = message.picture;
 
-        let htmls = `
-              <p style="width: 100%; text-align:center">로딩 중..잠시 기다려 주세요...</p>
-        `;
-        document.querySelector('#loginarea').innerHTML = htmls;
+        // let htmls = `
+        //       <p style="width: 100%; text-align:center">로딩 중..잠시 기다려 주세요...</p>
+        // `;
+        // document.querySelector('#loginarea').innerHTML = htmls;
 
         // getAllFederatedIdentities(true).then((IdentityPoolId)=>{
         //     console.log('[awsCognito.js:IdentityPoolId]', IdentityPoolId);
@@ -172,58 +172,56 @@ function insertDataSet(params){
                 }
             });
 
-            resolve({apigClientFactory: params.apigClientFactory, isNew: isNew});  // getAWSCredential
-
             // 이미 소셜로그인을 한 상태이면 로그아웃 안 한 상태로 창이 새로 띄워질때 넘겨받는 파라미터가 name뿐이므로,
             // userId와 profilePic 정보가 dataset에서 제거된다. 그래서 userId와 picture가 undefined면 return.
-            if (!params.userId || !params.picture)   return;
-
-            // 사용자 pool id의 dataset 내용 수정/삽입하기
-            var subject, contents;
-            var userInfo = new Array(); // or just []
-            a['userId'] = params.userId;
-            a['userName'] = params.userNm;
-            a['profilePic'] = params.picture;
-            for (var k in userInfo) {
-                if (a.hasOwnProperty(k)) {
-                    subject = k;
-                    contents = userInfo[k];
-                    console.log('key is: ' + k + ', value is: ' + a[k]);
-                    dataset.put(subject, contents, function (err, record) {
-                        if (err) {
-                            console.log('[dataset.put error]', err);
-                            return;
-                        }
-                        dataset.synchronize({
-                            onSuccess: function (data, newRecords) {
-                                // Your handler code here
-                            },
-                            onFailure: function (err) {
-                                console.log('onFailure', err);
-                            },
-                            onConflict: function (dataset, conflicts, callback) {
-                                var resolved = [];
-                                console.log('onConflict', conflicts);
-                                // for (var i=0; i<conflicts.length; i++) {
-                                //     console.log(conflicts[i]);
-                                // }
-                                dataset.resolve(resolved, function () {
-                                    // return callback(true);
-                                });
-                            },
-                            onDatasetDeleted: function (dataset, datasetName, callback) {
-                                console.log('onDatasetDeleted');
-                                // return callback(true);
-                            },
-                            onDatasetsMerged: function (dataset, datasetNames, callback) {
-                                console.log('onDatasetsMerged');
-                                // return callback(false);
+            if (params.userId || params.picture){
+                // 사용자 pool id의 dataset 내용 수정/삽입하기
+                var subject, contents;
+                var userInfo = new Array(); // or just []
+                userInfo['userId'] = params.userId;
+                userInfo['userName'] = params.userNm;
+                userInfo['profilePic'] = params.picture;
+                for (var k in userInfo) {
+                    if (userInfo.hasOwnProperty(k)) {
+                        subject = k;
+                        contents = userInfo[k];
+                        console.log('key is: ' + k + ', value is: ' + userInfo[k]);
+                        dataset.put(subject, contents, function (err, record) {
+                            if (err) {
+                                console.log('[dataset.put error]', err);
+                                return;
                             }
+                            dataset.synchronize({
+                                onSuccess: function (data, newRecords) {
+                                    // Your handler code here
+                                },
+                                onFailure: function (err) {
+                                    console.log('onFailure', err);
+                                },
+                                onConflict: function (dataset, conflicts, callback) {
+                                    var resolved = [];
+                                    console.log('onConflict', conflicts);
+                                    // for (var i=0; i<conflicts.length; i++) {
+                                    //     console.log(conflicts[i]);
+                                    // }
+                                    dataset.resolve(resolved, function () {
+                                        // return callback(true);
+                                    });
+                                },
+                                onDatasetDeleted: function (dataset, datasetName, callback) {
+                                    console.log('onDatasetDeleted');
+                                    // return callback(true);
+                                },
+                                onDatasetsMerged: function (dataset, datasetNames, callback) {
+                                    console.log('onDatasetsMerged');
+                                    // return callback(false);
+                                }
+                            });
                         });
-                    });
-                }
-            }
-
+                    }
+                } //end for
+            } //end if
+            resolve({apigClientFactory: params.apigClientFactory, isNew: isNew});  // getAWSCredential
         });
     });
 }

@@ -155,7 +155,7 @@ input[type=checkbox]{
 }
 
 /* signout button style */
-#signout {
+#signout, input[type=button] {
     margin-top: 0.5em;
     background: #FFFFFF;
     color: #444;

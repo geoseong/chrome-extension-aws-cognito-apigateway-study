@@ -205,6 +205,11 @@ function revoke() {
 //     sendToBackgroundJS('', '');
 // };
 function sendToBackgroundJS(paramTitle, paramTag){
+    let htmls = `
+          <p style="width: 100%; text-align:center">로딩 중..잠시 기다려 주세요...</p>
+      `;
+    document.querySelector('#loginarea').innerHTML = htmls;
+
     chrome.storage.sync.get(function (data) {
         var provider;
         if(data.facebook.id.length > 0){
