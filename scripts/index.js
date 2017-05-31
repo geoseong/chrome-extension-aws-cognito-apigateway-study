@@ -4,6 +4,7 @@ var recur=0;
 
 // 1. chrome.runtime.onMessage.addListener
 function messageListener(message) {
+    console.log('[index.js]\n', message);
     let isUserId=false, userNm;
     // background.js와 통신하여 WIK node.js 서버 안의 회원정보가 있는지 판별.
     try{

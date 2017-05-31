@@ -236,10 +236,10 @@ let providers = {
 
       getUserInfo(interactive) {
         return new Promise((resolve, reject) => {
-          if (this.user_info) {
-            resolve({userNm: this.user_info.name});
-            return;
-          } else
+          // if (this.user_info) {
+          //   resolve({userNm: this.user_info.name});
+          //   return;
+          // } else
           if (!interactive) {
               reject(new Error("user not logged in"));
               return;
@@ -381,6 +381,7 @@ function autoRefresh(clear){
 
 /** index.html에 내용출력 위한 바인딩데이터 보내기 */
 function sendData(params){
+    console.log('[sendData: refresh]', refresh);
     if(refresh){
         autoRefresh(false);  // auto Refresh 시작. 해당 메소드 실행된 이후에는 다음번 sendData때 더이상 실행되지 않게 하기 위해 autoRefresh 안의 전역변수 refresh를 false로 스위칭
     }
@@ -394,6 +395,8 @@ function sendData(params){
 
 /** 가장 첫 시작 부분 */
 function notify(message) {
+    console.log('[background.js]\n', message);
+
   switch(message.type) {
     case "getUserInfo":
         googleOrfacebook(message);
