@@ -52,17 +52,17 @@ function modal(){
                     <form name="titleform">
                         Title:<input type="text" style="margin-left: 1em;" name="title" id="title" size="50">
 						<p id="validation" style="color: red; font-weight: bold; padding-left: 3em; margin: 0 0 1em 0;"></p>
-                        Tag:
-                            <input type="checkbox" id="visible_checkbox1" name="tag" value="news"  style="margin-left: 1em; visibility: visible !important"/>
-								<label style="color:black; font-weight: normal !important" for="visible_checkbox1">News</label>
-                            <input type="checkbox" id="visible_checkbox2" name="tag" value="book" style="visibility: visible !important"/> 
-								<label style="color:black; font-weight: normal !important" for="visible_checkbox2">Book</label>
-                            <input type="checkbox" id="visible_checkbox3" name="tag" value="business" style="visibility: visible !important"/> 
-								<label style="color:black; font-weight: normal !important" for="visible_checkbox3">Business</label>
-							<input type="checkbox" id="visible_checkbox4" name="tag" value="sns" style="visibility: visible !important"/> 
-								<label style="color:black; font-weight: normal !important" for="visible_checkbox4">SNS</label>
-							<input type="checkbox" id="visible_checkbox5" name="tag" value="daily" style="visibility: visible !important"/> 
-								<label style="color:black; font-weight: normal !important" for="visible_checkbox5">Daily</label>
+                        Tag:<input type="text" style="margin-left: 1em;" name="tag" id="tag" size="50">
+                            <!--<input type="checkbox" id="visible_checkbox1" name="tag" value="news"  style="margin-left: 1em; visibility: visible !important"/>-->
+								<!--<label style="color:black; font-weight: normal !important" for="visible_checkbox1">News</label>-->
+                            <!--<input type="checkbox" id="visible_checkbox2" name="tag" value="book" style="visibility: visible !important"/> -->
+								<!--<label style="color:black; font-weight: normal !important" for="visible_checkbox2">Book</label>-->
+                            <!--<input type="checkbox" id="visible_checkbox3" name="tag" value="business" style="visibility: visible !important"/> -->
+								<!--<label style="color:black; font-weight: normal !important" for="visible_checkbox3">Business</label>-->
+							<!--<input type="checkbox" id="visible_checkbox4" name="tag" value="sns" style="visibility: visible !important"/> -->
+								<!--<label style="color:black; font-weight: normal !important" for="visible_checkbox4">SNS</label>-->
+							<!--<input type="checkbox" id="visible_checkbox5" name="tag" value="daily" style="visibility: visible !important"/> -->
+								<!--<label style="color:black; font-weight: normal !important" for="visible_checkbox5">Daily</label>-->
                         <p style="margin-left: 35%; margin-top: 2em;">
                         <input type="button" data-popup-ok="popup-1" value="OK" style="width: 40%;">
                         <!--<input type="button" data-popup-close="popup-1" value="Close">-->

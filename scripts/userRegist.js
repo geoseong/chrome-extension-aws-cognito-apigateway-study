@@ -6,7 +6,7 @@ function getAllFederatedIdentities(justgetPoolId){
         // 기능 : 현재 로그인된 아마존 사용자계정(관리자)이 갖고있는 Cognity Identity Pool 정보를 불러오기
         var credentials = new AWS.Credentials({        // 현 유저의 IAM user -> seurity credentials
             accessKeyId: '',
-            secretAccessKey: ''
+            secretAccessKey : ''
         });
         var cognitoidentity = new AWS.CognitoIdentity({
             region: "ap-northeast-2",
@@ -18,7 +18,7 @@ function getAllFederatedIdentities(justgetPoolId){
             else {  // successful response
                 if(justgetPoolId){
                     IdentityPoolId = data.IdentityPools[0].IdentityPoolId;
-                    resolve(IdentityPoolId);    return;
+                    resolve(IdentityPoolId);//    return;
                 }
             }
             // 기능 : 현재 로그인된 아마존 사용자계정(관리자)이 갖고있는 Cognity Identity Pool 의 모든 Identity IDs 불러오기

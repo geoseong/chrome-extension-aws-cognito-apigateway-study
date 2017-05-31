@@ -55,7 +55,6 @@ function onload(message){
 
         // getAllFederatedIdentities(true).then((IdentityPoolId)=>{
         //     console.log('[awsCognito.js:IdentityPoolId]', IdentityPoolId);
-
             startAWSCognito({IdentityPoolId, provider, accesstoken})
                 .then(setAWSCognito)
                 .then(getAWSCredential);
@@ -175,8 +174,7 @@ function getAWSCredential(params){
                         let params_createUser = {
                         };
                         let body_createUser = {
-                            user_id : identityId,
-                            name : userNm
+                            user_id : identityId
                         }
 
                         apigClient.createUserPost(params_createUser, body_createUser, additionalParams)

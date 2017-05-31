@@ -3,7 +3,7 @@
 chrome.runtime.onInstalled.addListener(function() {
     var contextMenuItem = {
         "id" : "WIK",
-        "title" : "선택된 단어는 내가 아는단어?",
+        "title" : "선택된 단어는 내가 아는단어?(master)",
         "contexts" : ["selection"]
     };
     chrome.contextMenus.create(contextMenuItem, function() {
