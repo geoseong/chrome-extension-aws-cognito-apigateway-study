@@ -4,6 +4,8 @@ var userId, userNm, userPic, context, title, tag, provider, accesstoken;
 var apigClient
 var additionalParams;
 var syncClient;
+// see if login user is already exist
+var isNew = false;
 
 // paramTitle, paramTag 값 setter
 function setcontentTitleTag(paramTitle, paramTag){
@@ -154,7 +156,7 @@ function insertDataSet(params){
     return new Promise((resolve, reject) => {
         // parameter : apigClientFactory: apigClientFactory, userId: userId, userNm: userNm, picture: userPic
         syncClient = new AWS.CognitoSyncManager();
-        var isNew = false;
+        
 
         // 없으면 만든다.
         syncClient.openOrCreateDataset('userInfo', function (err, dataset) {
@@ -301,16 +303,20 @@ function postTextUserIdPost(params, body, additionalParams) {
 }
 // from index.js
 function updateWordStatusUserIdPatch(userId, body) {
+	var param_userId = userId;
+	var param_body = body;
     let params = {
         user_id : userId
     }
     apigClient.updateWordStatusUserIdPatch(params, body, additionalParams)
         .then(function (result) {
             // index.js messsageListener(message)에 파라미터 전달하여 단어뿌리기작업 실시
-            // resolve({name: userNm, data: result.data});
+            console.log('[updateWordStatusUserIdPatch]result', result);
         }).catch(function (result) {
             // background.js 로 메시지 보냄 ( token을 다시 받아서 security token refresh를 위함. )
-            chrome.runtime.sendMessage({provider: provider, type: 'getUserInfo'});
+            chrome.runtime.sendMessage({provider: provider, type: 'getUserInfo'}, () =>{
+				updateWordStatusUserIdPatch(param_userId, param_body);
+			});
         });
 }
 
