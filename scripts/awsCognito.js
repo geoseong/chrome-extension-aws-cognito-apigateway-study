@@ -33,10 +33,8 @@ function onload(message){
                 messageListener();
                 return;
             }else if(message.expiration_time){
-                // getAllFederatedIdentities(true).then((IdentityPoolId)=>{
-                    var params = {IdentityPoolId : IdentityPoolId, provider:message.provider, accesstoken:message.accesstoken};
-                    startAWSCognito(params).then(getTokenRefreshed);
-                // });
+                var params = {IdentityPoolId : IdentityPoolId, provider:message.provider, accesstoken:message.accesstoken};
+                startAWSCognito(params).then(getTokenRefreshed);
                 return;
             }
         }catch(e){
@@ -51,18 +49,10 @@ function onload(message){
         userId = message.userId;
         userPic = message.picture;
 
-        // let htmls = `
-        //       <p style="width: 100%; text-align:center">로딩 중..잠시 기다려 주세요...</p>
-        // `;
-        // document.querySelector('#loginarea').innerHTML = htmls;
-
-        // getAllFederatedIdentities(true).then((IdentityPoolId)=>{
-        //     console.log('[awsCognito.js:IdentityPoolId]', IdentityPoolId);
-            startAWSCognito({IdentityPoolId, provider, accesstoken})
-                .then(setAWSCognito)
-                .then(insertDataSet)
-                .then(getAWSCredential);
-        // });
+        startAWSCognito({IdentityPoolId, provider, accesstoken})
+            .then(setAWSCognito)
+            .then(insertDataSet)
+            .then(getAWSCredential);
     });
 } //end onload()
 
@@ -96,9 +86,7 @@ function startAWSCognito(param){
         chrome.storage.sync.get(function (data) {
             // 전역변수 context
             context = data.context;
-
             if (param.provider==="facebook") {
-                // userId = data.facebook.id;
                 inputCredential = {
                     IdentityPoolId: param.IdentityPoolId,   // yaenedeul
                     Logins: {
@@ -106,7 +94,6 @@ function startAWSCognito(param){
                     }
                 };
             } else {
-                // userId = data.google.id;
                 inputCredential = {
                     IdentityPoolId: param.IdentityPoolId,   // yaenedeul
                     Logins: {
@@ -133,8 +120,8 @@ function setAWSCognito(inputCredential) {
             }
             // Cognito Identity에 생성된 사용자 identity Id를 storage에 저장.
             var identityId = credentials.identityId;
-            var n = identityId.indexOf(":");
-            identityId = identityId.substring(n+1,identityId.length).toString();   // ':' 가 '%3A' 로 바뀌는 issue떄문에 ':' 다음문장부터 id로 지정.
+            // var n = identityId.indexOf(":");
+            // identityId = identityId.substring(n+1,identityId.length).toString();   // ':' 가 '%3A' 로 바뀌는 issue떄문에 ':' 다음문장부터 id로 지정.
             sendIdentityId(identityId);
 
             var apigClientFactory = {
@@ -156,22 +143,21 @@ function insertDataSet(params){
     return new Promise((resolve, reject) => {
         // parameter : apigClientFactory: apigClientFactory, userId: userId, userNm: userNm, picture: userPic
         syncClient = new AWS.CognitoSyncManager();
-        
-
         // 없으면 만든다.
         syncClient.openOrCreateDataset('userInfo', function (err, dataset) {
             if (err) {
                 console.error(err);
                 return;
             }
-            // 사용자 pool id의 dataset 내용 가져오기.
-            dataset.get('userInfo', function (err, dataset) {
+            console.log('[insertDataSet: userInfo]', dataset);
+            if (!dataset)   {
+                isNew = true;
+                console.log('[insertDataSet: isNew]', isNew);
+            }
+            // federated identities의 dataset 안의 모든 내용 가져오기.
+            dataset.getAllRecords(function (err, dataset) {
                 if (err) console.log('[insertDataSet:err]', err);
-                console.log('[insertDataSet: dataset.get]', dataset);
-                if (!dataset)   {
-                    isNew = true;
-                    console.log('[insertDataSet: isNew]', isNew);
-                }
+                console.log('[insertDataSet: userInfo 안..]', dataset);
             });
 
             // 이미 소셜로그인을 한 상태이면 로그아웃 안 한 상태로 창이 새로 띄워질때 넘겨받는 파라미터가 name뿐이므로,
@@ -238,52 +224,26 @@ function getAWSCredential(params){
             sessionToken: params.apigClientFactory.sessionToken,
             region: "ap-northeast-2"
         });
-
         // DynamoDB 데이터넣기
         var identityId = params.apigClientFactory.identityId;
+            console.log('awsCognito.js - identityId -', identityId);
         additionalParams = {
             headers: {
                 'Content-Type': 'application/json; charset="UTF-8"'
             },
             queryParams: {}
         };
-        console.log('[getAWSCredential:params.isNew]', params.isNew);
-        // 사용자가 없으면 createUser 후 postTextUser
-        if(params.isNew){
-            let params_createUser = {
-            };
-            let body_createUser = {
-                user_id : identityId
-            }
-
-            apigClient.createUserPost(params_createUser, body_createUser, additionalParams)
-                .then(function (result) {
-                    let parms_postTextUserId = {
-                        user_id: identityId
-                    }
-                    let body_postTextUserId = {
-                        text: context,
-                        tag_list: tag,
-                        title: title
-                    }
-                    // 사용자 단어 DynamoDB에 모두 넣은 뒤 index.js에서 단어뿌리기작업 실시
-                    postTextUserIdPost(parms_postTextUserId, body_postTextUserId, additionalParams).then(messageListener);
-                }).catch(function (result) {
-                    console.log('[createUserPost-fail]', result);
-                })
+            console.log('[getAWSCredential:params.isNew]', params.isNew);
+        let parms_postTextUserId = {
+            user_id: identityId
         }
-        else{
-            let parms_postTextUserId = {
-                user_id: identityId
-            }
-            let body_postTextUserId = {
-                text: context,
-                tag_list: tag,
-                title: title
-            }
-            // 사용자 단어 DynamoDB에 모두 넣은 뒤 index.js에서 단어뿌리기작업 실시
-            postTextUserIdPost(parms_postTextUserId, body_postTextUserId, additionalParams).then(messageListener);
+        let body_postTextUserId = {
+            text: context,
+            tag_list: tag,
+            title: title
         }
+        // 사용자 단어 DynamoDB에 모두 넣은 뒤 index.js에서 단어뿌리기작업 실시
+        postTextUserIdPost(parms_postTextUserId, body_postTextUserId, additionalParams).then(messageListener);
     });
     return identityId;
 }
@@ -333,4 +293,3 @@ function sendIdentityId(identityId){
         });
     } //end if
 }
-
