@@ -49,6 +49,7 @@ function onload(message){
         userId = message.userId;
         userPic = message.picture;
 
+        // Promise function
         startAWSCognito({IdentityPoolId, provider, accesstoken})
             .then(setAWSCognito)
             .then(insertDataSet)
@@ -108,11 +109,32 @@ function startAWSCognito(param){
 
 function setAWSCognito(inputCredential) {
     return new Promise((resolve, reject) => {
+        console.log('setAWSCognito: inputCredential', inputCredential);
+
         AWS.config.region = "ap-northeast-2";
-        AWS.config.credentials = new AWS.CognitoIdentityCredentials(inputCredential);
         AWS.config.update({customUserAgent: 'MobileHub v0.1'});
 
+        // Initially Unauthenticated User & Switch to Authenticated User
+        var cognitocreds = new AWS.CognitoIdentityCredentials(inputCredential);
+        AWS.config.credentials = cognitocreds;
+        cognitocreds.expired = true;
+
+        // var providerid;
+        // for(var key in inputCredential.Logins){
+        //     providerid = key;
+        //     console.log('inputCredential.Logins -', providerid);
+        // }
+        // var webIdentitycreds = new AWS.WebIdentityCredentials({
+        //     RoleArn: 'arn:aws:iam::804067700506:role/wik_auth_MOBILEHUB_1094472491',
+        //     ProviderId: providerid, // Omit this for Google
+        //     WebIdentityToken: inputCredential.Logins[providerid] // Access token from identity provider
+        // });
+        // AWS.config.credentials = webIdentitycreds;
+        // // Result : Not authorized to perform sts:AssumeRoleWithWebIdentity
+
+        syncClient = new AWS.CognitoSyncManager();
         var credentials = AWS.config.credentials;
+        console.log('setAWSCognito: AWS.config.credentials', credentials);
         credentials.get(function (err) {
             if (err) {
                 console.log("Error: \n", err);
@@ -120,8 +142,6 @@ function setAWSCognito(inputCredential) {
             }
             // Cognito Identity에 생성된 사용자 identity Id를 storage에 저장.
             var identityId = credentials.identityId;
-            // var n = identityId.indexOf(":");
-            // identityId = identityId.substring(n+1,identityId.length).toString();   // ':' 가 '%3A' 로 바뀌는 issue떄문에 ':' 다음문장부터 id로 지정.
             sendIdentityId(identityId);
 
             var apigClientFactory = {
@@ -130,11 +150,12 @@ function setAWSCognito(inputCredential) {
                 sessionToken : credentials.sessionToken,
                 identityId : identityId
             };
-
-            // cognito Federated Identity Dataset에 자료 넣기.\
+            // cognito Federated Identity Dataset에 자료 넣기.
             resolve({apigClientFactory: apigClientFactory, userId: userId, userNm: userNm, picture: userPic});  //insertDataSet
-        });
-    });
+
+        }); //end credentials.get();
+
+    }); //end Promise
 }
 
 
@@ -142,75 +163,69 @@ function insertDataSet(params){
     console.log('[insertDataSet: params]', params);
     return new Promise((resolve, reject) => {
         // parameter : apigClientFactory: apigClientFactory, userId: userId, userNm: userNm, picture: userPic
-        syncClient = new AWS.CognitoSyncManager();
+
         // 없으면 만든다.
         syncClient.openOrCreateDataset('userInfo', function (err, dataset) {
-            if (err) {
-                console.error(err);
-                return;
-            }
-            console.log('[insertDataSet: userInfo]', dataset);
-            if (!dataset)   {
-                isNew = true;
-                console.log('[insertDataSet: isNew]', isNew);
-            }
-            // federated identities의 dataset 안의 모든 내용 가져오기.
-            dataset.getAllRecords(function (err, dataset) {
-                if (err) console.log('[insertDataSet:err]', err);
-                console.log('[insertDataSet: userInfo 안..]', dataset);
-            });
 
-            // 이미 소셜로그인을 한 상태이면 로그아웃 안 한 상태로 창이 새로 띄워질때 넘겨받는 파라미터가 name뿐이므로,
-            // userId와 profilePic 정보가 dataset에서 제거된다. 그래서 userId와 picture가 undefined면 return.
-            if (params.userId || params.picture){
-                // 사용자 pool id의 dataset 내용 수정/삽입하기
-                var subject, contents;
-                var userInfo = new Array(); // or just []
-                userInfo['userId'] = params.userId;
-                userInfo['userName'] = params.userNm;
-                userInfo['profilePic'] = params.picture;
-                for (var k in userInfo) {
-                    if (userInfo.hasOwnProperty(k)) {
-                        subject = k;
-                        contents = userInfo[k];
-                        console.log('key is: ' + k + ', value is: ' + userInfo[k]);
-                        dataset.put(subject, contents, function (err, record) {
-                            if (err) {
-                                console.log('[dataset.put error]', err);
-                                return;
-                            }
-                            dataset.synchronize({
-                                onSuccess: function (data, newRecords) {
-                                    // Your handler code here
-                                },
-                                onFailure: function (err) {
-                                    console.log('onFailure', err);
-                                },
-                                onConflict: function (dataset, conflicts, callback) {
-                                    var resolved = [];
-                                    console.log('onConflict', conflicts);
-                                    // for (var i=0; i<conflicts.length; i++) {
-                                    //     console.log(conflicts[i]);
-                                    // }
-                                    dataset.resolve(resolved, function () {
-                                        // return callback(true);
-                                    });
-                                },
-                                onDatasetDeleted: function (dataset, datasetName, callback) {
-                                    console.log('onDatasetDeleted');
-                                    // return callback(true);
-                                },
-                                onDatasetsMerged: function (dataset, datasetNames, callback) {
-                                    console.log('onDatasetsMerged');
-                                    // return callback(false);
+            // federated identities의 dataset 안의 모든 내용 가져오기.
+            dataset.getAllRecords(function (err, dataINdataset) {
+                if (err) console.log('[insertDataSet:err]', err);
+                console.log('[insertDataSet: userInfo 안의 data..]', dataINdataset);    // 배열로 리턴됨.
+                if(dataINdataset.length === 0){
+                    isNew = true;
+                    console.log('isNew = true;');
+                }
+                // if (isNew){
+                    // 사용자 pool id의 dataset 내용 수정/삽입하기
+                    var subject, contents;
+                    var userInfo = new Array(); // or just []
+                    userInfo['userId'] = params.userId;
+                    userInfo['userName'] = params.userNm;
+                    userInfo['profilePic'] = params.picture;
+                    for (var k in userInfo) {
+                        if (userInfo.hasOwnProperty(k)) {
+                            subject = k;
+                            contents = userInfo[k];
+                            console.log('key is: ' + k + ', value is: ' + userInfo[k]);
+                            dataset.put(subject, contents, function (err, record) {
+                                if (err) {
+                                    console.log('[dataset.put error]', err);
+                                    return;
                                 }
-                            });
-                        });
-                    }
-                } //end for
-            } //end if
+                                dataset.synchronize({
+                                    onSuccess: function (data, newRecords) {
+                                        console.log('onSuccess', data);
+                                    },
+                                    onFailure: function (err) {
+                                        console.log('onFailure', err);
+                                    },
+                                    onConflict: function (dataset, conflicts, callback) {
+                                        var resolved = [];
+                                        console.log('onConflict', conflicts);
+                                        // for (var i=0; i<conflicts.length; i++) {
+                                        //     console.log(conflicts[i]);
+                                        // }
+                                        dataset.resolve(resolved, function () {
+                                            // return callback(true);
+                                        });
+                                    },
+                                    onDatasetDeleted: function (dataset, datasetName, callback) {
+                                        console.log('onDatasetDeleted');
+                                        // return callback(true);
+                                    },
+                                    onDatasetsMerged: function (dataset, datasetNames, callback) {
+                                        console.log('onDatasetsMerged');
+                                        // return callback(false);
+                                    }
+                                });
+                            }); // dataset.put()
+                        }
+                    } //end for
+                // } //end if
+            }); // end dataset.getAllRecords()
+
             resolve({apigClientFactory: params.apigClientFactory, isNew: isNew});  // getAWSCredential
-        });
+        }); //end syncClient.openOrCreateDataset()
     });
 }
 
@@ -226,24 +241,48 @@ function getAWSCredential(params){
         });
         // DynamoDB 데이터넣기
         var identityId = params.apigClientFactory.identityId;
-            console.log('awsCognito.js - identityId -', identityId);
-        additionalParams = {
-            headers: {
-                'Content-Type': 'application/json; charset="UTF-8"'
-            },
-            queryParams: {}
-        };
-            console.log('[getAWSCredential:params.isNew]', params.isNew);
-        let parms_postTextUserId = {
-            user_id: identityId
+
+        console.log('identityId -', identityId);
+        console.log('[getAWSCredential:params.isNew]', params.isNew);
+        console.log('context : ', context);
+
+        // createUser(USER_CONTENTS, USER_WORDS putItem) 후 postTextUser
+        if(params.isNew){
+            let params_createUser = {
+            };
+            let body_createUser = {
+                user_id : identityId
+            }
+
+            apigClient.createUserPost(params_createUser, body_createUser, additionalParams)
+                .then(function (result) {
+                    let parms_postTextUserId = {
+                        user_id: identityId
+                    }
+                    let body_postTextUserId = {
+                        text: context,
+                        tag_list: tag,
+                        title: title
+                    }
+                    // 사용자 단어 DynamoDB에 모두 넣은 뒤 index.js에서 단어뿌리기작업 실시
+                    postTextUserIdPost(parms_postTextUserId, body_postTextUserId, additionalParams).then(messageListener);
+                }).catch(function (result) {
+                console.log('[createUserPost-fail]', result);
+            })
         }
-        let body_postTextUserId = {
-            text: context,
-            tag_list: tag,
-            title: title
+        else{
+            let parms_postTextUserId = {
+                user_id: identityId
+            }
+            let body_postTextUserId = {
+                text: context,
+                tag_list: tag,
+                title: title
+            }
+            // 사용자 단어 DynamoDB에 모두 넣은 뒤 index.js에서 단어뿌리기작업 실시
+            postTextUserIdPost(parms_postTextUserId, body_postTextUserId, additionalParams).then(messageListener);
         }
-        // 사용자 단어 DynamoDB에 모두 넣은 뒤 index.js에서 단어뿌리기작업 실시
-        postTextUserIdPost(parms_postTextUserId, body_postTextUserId, additionalParams).then(messageListener);
+
     });
     return identityId;
 }

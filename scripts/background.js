@@ -110,11 +110,11 @@ let providers = {
   },
   google: {
       // 본 서버용
-      clientId: "775980557340-qmc8sa7a5d8h93ak0nlkjc6h4gbgagvo.apps.googleusercontent.com",
-      client_secret: "CIbXSS953CHXvkmDxujzRsn-",
+      // clientId: "775980557340-qmc8sa7a5d8h93ak0nlkjc6h4gbgagvo.apps.googleusercontent.com",
+      // client_secret: "CIbXSS953CHXvkmDxujzRsn-",
       // 로컬 테스트용
-      // clientId: "775980557340-18c360oopd9ifnf6oit5jmv5lp355gft.apps.googleusercontent.com",
-      // client_secret: "uo_LV0aA45aT04ofGnpDdeUy",
+      clientId: "775980557340-18c360oopd9ifnf6oit5jmv5lp355gft.apps.googleusercontent.com",
+      client_secret: "uo_LV0aA45aT04ofGnpDdeUy",
       token: null,
       user_info: null,      // this.user_info 로 쓰임.
       scopes: ["openid", "email", "profile"],
@@ -187,7 +187,6 @@ let providers = {
                           expiration_time = response.expires_in;    // google toke 만료시간
                           access_token = id_token;    // xhrWithAuth의 첫째 파라미터가 this이고, authorize에서 this.token을 검사해서 중간에 짤라먹는 역할을 한다.
                           var googlaccess_token = response.access_token;
-                          // chrome.storage.sync.set({	"id_token": id_token	}); // chrome.storage에 id_token 저장
                           this.token = googlaccess_token;
                           resolve(googlaccess_token);
                       }else if(xhr.status === 400) {
@@ -287,10 +286,10 @@ function xhrWithAuth(provider, method, url, interactive) {
 function authorize(provider, interactive) {
   let redirectUri = chrome.identity.getRedirectURL('/provider_cb');
   return new Promise((resolve, reject) => {
-    if (provider.token) {
-      resolve(provider.token);
-      return;
-    }
+    // if (provider.token) {
+    //   resolve(provider.token);
+    //   return;
+    // }
     let options = {
       interactive: interactive,
       url: provider.getAuthURL(redirectUri)
@@ -382,8 +381,9 @@ function autoRefresh(clear){
 /** index.html에 내용출력 위한 바인딩데이터 보내기 */
 function sendData(params){
     console.log('[sendData: refresh]', refresh);
+    console.log('[sendData: provider]', provider);
     if(refresh){
-        autoRefresh(false);  // auto Refresh 시작. 해당 메소드 실행된 이후에는 다음번 sendData때 더이상 실행되지 않게 하기 위해 autoRefresh 안의 전역변수 refresh를 false로 스위칭
+        autoRefresh(false);  // auto Refresh 시작. 해당 메소드 실행된 이후에는 다음번 sendData때 더이상 실행되지 않게 하기 위해 autoRefresh 안에서 전역변수 refresh를 false로 스위칭
     }
     if(!provider)   refresh = true;     // provider 로그인 이력(소셜로그인)이 전무할때 flag를 바꿔서 다음에 로그인 시에는 autoRefresh() 호출되게 설정.
     chrome.storage.sync.set({
@@ -399,9 +399,9 @@ function notify(message) {
 
   switch(message.type) {
     case "getUserInfo":
-        googleOrfacebook(message);
-      break;
-      case "removeCachedToken":
+        googleOrfacebook(message)
+        break;
+    case "removeCachedToken":
         providers["facebook"].clear();
         providers["google"].clear();
         autoRefresh(true);  // auto token refresh를 멈춤
@@ -412,7 +412,7 @@ function notify(message) {
             title: "아는단어",
             message: "로그아웃 되었습니다."
         });
-      break;
+        break;
     default:
 		try{
 			provider = message.provider;    // 전역변수
