@@ -110,11 +110,11 @@ let providers = {
   },
   google: {
       // 본 서버용
-      // clientId: "775980557340-qmc8sa7a5d8h93ak0nlkjc6h4gbgagvo.apps.googleusercontent.com",
-      // client_secret: "CIbXSS953CHXvkmDxujzRsn-",
+      clientId: "775980557340-qmc8sa7a5d8h93ak0nlkjc6h4gbgagvo.apps.googleusercontent.com",
+      client_secret: "CIbXSS953CHXvkmDxujzRsn-",
       // 로컬 테스트용
-      clientId: "775980557340-18c360oopd9ifnf6oit5jmv5lp355gft.apps.googleusercontent.com",
-      client_secret: "uo_LV0aA45aT04ofGnpDdeUy",
+      // clientId: "775980557340-18c360oopd9ifnf6oit5jmv5lp355gft.apps.googleusercontent.com",
+      // client_secret: "uo_LV0aA45aT04ofGnpDdeUy",
       token: null,
       user_info: null,      // this.user_info 로 쓰임.
       scopes: ["openid", "email", "profile"],

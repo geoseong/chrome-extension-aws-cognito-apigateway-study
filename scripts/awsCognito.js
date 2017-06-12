@@ -173,7 +173,7 @@ function insertDataSet(params){
                 console.log('[insertDataSet: userInfo 안의 data..]', dataINdataset);    // 배열로 리턴됨.
                 if(dataINdataset.length === 0){
                     isNew = true;
-                    console.log('isNew = true;');
+                    console.log('dataINdataset.length = 0 / isNew = true;');
                 }
                 // if (isNew){
                     // 사용자 pool id의 dataset 내용 수정/삽입하기
@@ -256,6 +256,7 @@ function getAWSCredential(params){
 
             apigClient.createUserPost(params_createUser, body_createUser, additionalParams)
                 .then(function (result) {
+                    console.log('createUserPost');
                     let parms_postTextUserId = {
                         user_id: identityId
                     }
@@ -267,8 +268,8 @@ function getAWSCredential(params){
                     // 사용자 단어 DynamoDB에 모두 넣은 뒤 index.js에서 단어뿌리기작업 실시
                     postTextUserIdPost(parms_postTextUserId, body_postTextUserId, additionalParams).then(messageListener);
                 }).catch(function (result) {
-                console.log('[createUserPost-fail]', result);
-            })
+                    console.log('[createUserPost-fail]', result);
+                })
         }
         else{
             let parms_postTextUserId = {
