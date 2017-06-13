@@ -3,8 +3,8 @@
 chrome.runtime.onInstalled.addListener(function() {
     var contextMenuItem = {
         "id" : "WIK",
-        // "title" : "선택된 단어는 내가 아는단어?(master)",
-        "title" : "선택된 단어는 내가 아는단어?",
+        "title" : "선택된 단어는 내가 아는단어?(master)",
+        // "title" : "선택된 단어는 내가 아는단어?",
         "contexts" : ["selection"]
     };
     chrome.contextMenus.create(contextMenuItem, function() {
@@ -26,7 +26,7 @@ chrome.contextMenus.onClicked.addListener(function (clickData) {
     chrome.windows.create({
         url : "index.html",
         width : 500,
-        height: 670,
+        height: 695,
         left : 100,
         top : 100,
         focused : true,

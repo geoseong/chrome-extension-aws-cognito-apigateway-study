@@ -19,7 +19,14 @@ body #wrap{
     width: inherit;
     margin: 0 auto;
 }
-
+p#disclaimer{
+    text-decoration: underline;
+}
+p#status {
+    border-radius: 5px;
+    background-color: rgba(135, 226, 150, 0.3);
+    padding: 5px;
+}
 /***************************************************************/
 /* start - div : 테이블 */
 #context #divTable{

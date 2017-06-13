@@ -302,7 +302,7 @@ function postTextUserIdPost(params, body, additionalParams) {
     });
 }
 // from index.js
-function updateWordStatusUserIdPatch(userId, body) {
+function updateWordStatusUserIdPatch(userId, body, wordstatusCallback) {
 	var param_userId = userId;
 	var param_body = body;
     let params = {
@@ -312,6 +312,18 @@ function updateWordStatusUserIdPatch(userId, body) {
         .then(function (result) {
             // index.js messsageListener(message)에 파라미터 전달하여 단어뿌리기작업 실시
             console.log('[updateWordStatusUserIdPatch]result', result);
+            var resultData = JSON.parse(result.config.data);
+            if(result.data.result === 1){
+                var word = resultData.word;
+                var status = resultData.know;
+                if(status){
+                    status = '아는 단어';
+                }else{
+                    status = '모르는 단어';
+                }
+                console.log('word', word, ', status', status);
+                wordstatusCallback({word, status});
+            }
         }).catch(function (result) {
             // background.js 로 메시지 보냄 ( token을 다시 받아서 security token refresh를 위함. )
             chrome.runtime.sendMessage({provider: provider, type: 'getUserInfo'}, () =>{

@@ -1,6 +1,7 @@
 
 var user='';
 var recur=0;
+var contextLength=0;
 
 // 1. chrome.runtime.onMessage.addListener
 function messageListener(message) {
@@ -15,6 +16,7 @@ function messageListener(message) {
             isUserId = true;
             userNm = message.name;
             spreadWords(message.data, 0);
+            contextLength = message.data.length;    // 추출단어 갯수 전역변수로 저장
         }
     }catch(e){
         // console.log(e);
@@ -34,20 +36,12 @@ function spreadWords(context, pageStart){
         var wordwik = '';
         var paginghtml = '';
         var paginglistCnt = 15;
-        // var totalContextCnt = context.length;
         var pageEnd = pageStart + paginglistCnt;
         var gotoPrev = pageStart - paginglistCnt;
 
         if (context.length <= pageEnd) {
             pageEnd = context.length
         }
-
-        // 페이징 영역 & 이벤트 정의
-        // paginghtml = `
-        //     <p id="pageCnt">${pageStart + 1} - ${pageEnd}</p>
-        //     <button type="button" name="pagingBtn" value="${gotoPrev}" id="btnPrev"><</button>
-        //     <button type="button" name="pagingBtn" value="${pageStart + paginglistCnt}" id="btnNext">></button>
-        // `;
         paginghtml = `
             <p id="pageCnt"><label1>아는 단어</label1> <label2>모르는 단어</label2></p>
             <div style="float: right;">
@@ -75,7 +69,6 @@ function spreadWords(context, pageStart){
         };
 
         for (var i = pageStart; i < pageEnd; i++) {
-            // for(var i=0; i<totalContextCnt; i++){
             let checked = '';
             if (context[i].know) checked = 'checked';
             wordwik += `
@@ -135,19 +128,26 @@ function switchWordStatus(index, context) {
             alert('로그인 오류. 창을 닫고 다시 시도하세요.');
             return;
         }
-        updateWordStatusUserIdPatch(userId, body);
+        updateWordStatusUserIdPatch(userId, body, wordstatusCallback);
     });
 }
-
+// 2-1. 콜백메소드 : 단어 상태 변경 후 p#status 에 메시지 뿌리기
+var wordstatusCallback = function(param){
+    var html = `<b>${param.word}</b> 단어의 상태가 <b>${param.status}</b>로 변경되었습니다.`;
+    document.getElementById('status').innerHTML = html;
+    return false;
+}
 // 3. 소셜 로그인 부분
 function initSetting(userId, userNm){
     return new Promise((resolve, reject) => {
       // userId 값이 존재하면 background.js에서 DB로 조회한 userName을 출력시킨다.
+        var isLogin = false;
       if(userId){
           htmls =
               `${userNm} 님, 환영합니다~!
               <br>
               <button id="signout">로그아웃</button>`;
+          isLogin = true;
         reject();
      }else{
           htmls =
@@ -168,8 +168,9 @@ function initSetting(userId, userNm){
                     </div>
                 </div>
             </div>
-            <p id="validation" style="color: red; font-weight: bold;">로그인이 필요합니다</p>
+            <!--<p id="validation" style="color: red; font-weight: bold;">로그인이 필요합니다</p>-->
               `;
+          isLogin = false;
           // Promise 패턴의 callback 실행(initSetting을 다 훑고 실행)
           resolve();
       } //end if
@@ -177,8 +178,19 @@ function initSetting(userId, userNm){
           <div id="loginmsg">
             <p>아는단어는 iPhone, Android 앱스토어에서 다운로드 받을 수 있습니다.<br>
             회원정보 수정은 아는단어 앱에서 하실 수 있습니다.</p>
-          </div>
-      `;
+            <p id="disclaimer">단어를 선택하면 상태가 자동으로 저장됩니다.</p>
+        `;
+      if(isLogin){
+          htmls += `
+            <p id="status">총 ${contextLength}개의 단어가 추출되었습니다.</p>
+              </div>
+          `;
+      }else{
+          htmls += `
+            <p id="status" style="color: red; font-weight: bold;">컨텐츠 저장완료. 로그인 하시면 보실 수 있습니다</p>
+          `
+      }
+
       document.querySelector('#loginarea').innerHTML = htmls;
     });
 }
@@ -187,6 +199,7 @@ function initSetting(userId, userNm){
 function getUserInfo(provider, intractive=true) {
     let htmls = `
           <p style="width: 100%; text-align:center">로딩 중..잠시 기다려 주세요...</p>
+          <img src="../pics/loading.gif">
       `;
     document.querySelector('#loginarea').innerHTML = htmls;
     chrome.runtime.sendMessage({"type": "getUserInfo", provider, "interactive": intractive, "userId" : this.user});
@@ -207,6 +220,7 @@ function revoke() {
 function sendToBackgroundJS(paramTitle, paramTag){
     let htmls = `
           <p style="width: 100%; text-align:center">로딩 중..잠시 기다려 주세요...</p>
+          <img src="../pics/loading.gif">
       `;
     document.querySelector('#loginarea').innerHTML = htmls;
 
@@ -225,7 +239,5 @@ function sendToBackgroundJS(paramTitle, paramTag){
         // background.js 로 메시지 보냄 ( Node.js 서버에서 회원정보 조회를 위함 )
         chrome.runtime.sendMessage({userId: this.user, provider: provider, paramTitle: paramTitle, paramTag: paramTag});
 
-        // chrome.runtime.onMessage.addListener(messageListener);
-        // messageListener();
     });
 }
