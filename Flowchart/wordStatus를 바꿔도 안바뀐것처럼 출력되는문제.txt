@@ -1,0 +1,39 @@
+# onload
+	* before
+		startAWSCognito({IdentityPoolId, provider, accesstoken})
+			.then(setAWSCognito)
+				/* insertDataSet */
+			.then(getAWSCredential);
+	* after
+		startAWSCognito({IdentityPoolId, provider, accesstoken}) v
+			.then(setAWSCognito)
+			.then(insertDataSet)
+			.then(getAWSCredential);
+------------------------------------------------------------------------
+# setAWSCognito
+	* before
+		resolve({accessKeyId, secretAccessKey, sessionToken, identityId});
+		insertDataSet({userId: userId, userNm: userNm, picture: userPic});
+		
+	* after
+		var apigClientFactory = {
+			accessKeyId : credentials.accessKeyId,
+			secretAccessKey : credentials.secretAccessKey,
+			sessionToken : credentials.sessionToken,
+			identityId : identityId
+		};
+
+		// cognito Federated Identity Dataset에 자료 넣기.\
+		resolve({apigClientFactory: apigClientFactory, userId: userId, userNm: userNm, picture: userPic});  //insertDataSet
+		
+------------------------------------------------------------------------		
+# getAWSCredential
+	* before
+		apigClient.getUserInfoUserIdGet(params_getUserInfo, body_getUserInfo, additionalParams)
+			if(result.data.is_user === 0)	apigClient.createUserPost(params_createUser, body_createUser, additionalParams).then(postTextUserIdPost)
+			else postTextUserIdPost
+	* after
+		if(params.isNew){	apigClient.createUserPost(params_createUser, body_createUser, additionalParams).then(postTextUserIdPost)	}
+		else postTextUserIdPost
+		
+	>> isNew는 insertDataSet으로부터 만들어져서 내려오는 것임.
