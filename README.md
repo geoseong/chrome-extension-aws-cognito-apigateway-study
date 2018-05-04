@@ -1,4 +1,4 @@
-아는단어(WIK : Words I Know) - Chrome Web Extension (Team Yaenedeul : disbanded)
+## 아는단어(WIK : Words I Know) - Chrome Web Extension (Team Yaenedeul `disbanded`)
 =======================================================
 
 ### Chrome Extension 다운로드 url
